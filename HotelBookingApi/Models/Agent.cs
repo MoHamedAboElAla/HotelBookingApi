@@ -19,7 +19,7 @@ namespace HotelBookingApi.Models
         [Required]
         public string PhoneNumber { get; set; } = string.Empty;
 
-    
+        [Required]
         [StringLength(20, MinimumLength = 5)]
         [RegularExpression(@"^[a-zA-Z0-9\-]+$", ErrorMessage = "Only letters, numbers, and dashes allowed.")]
         public string? CommercialRegister { get; set; }
@@ -31,6 +31,8 @@ namespace HotelBookingApi.Models
         [Required]
       
         public string Role { get; set; } = "Agent";
+        [Required]
+        public string Password { get; set; }
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
         
     }
