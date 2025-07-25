@@ -12,8 +12,8 @@ namespace HotelBookingApi.Models
         public string? Location { get; set; }
         [Required, StringLength(50, MinimumLength = 5, ErrorMessage = "Country must be between 2 and 50 characters.")]
         public string? Country { get; set; }
-        [AllowedExtensions(new string[] { ".jpg", ".jpeg", ".png" })]
-        public string? ImageUrl { get; set; }
+       // [AllowedExtensions(new string[] { ".jpg", ".jpeg", ".png" })]
+        public string ImageFileName { get; set; } = "";
 
         [Required, StringLength(700, MinimumLength = 20, ErrorMessage = "Description must be between 20 and 700 characters.")]
         public string? Description { get; set; }
