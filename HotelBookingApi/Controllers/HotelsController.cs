@@ -1,4 +1,5 @@
-﻿using HotelBookingApi.IRepository;
+﻿using HotelBookingApi.Dtos;
+using HotelBookingApi.IRepository;
 using HotelBookingApi.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,10 +12,11 @@ namespace HotelBookingApi.Controllers
     public class HotelsController : ControllerBase
     {
         IHotelRepository _repo;
-
-        public HotelsController(IHotelRepository repo)
+        private readonly IWebHostEnvironment _env;
+        public HotelsController(IHotelRepository repo, IWebHostEnvironment env)
         {
             _repo = repo;
+            _env = env;
         }
         [HttpGet]
         public IActionResult GetAllHotels()
@@ -33,29 +35,77 @@ namespace HotelBookingApi.Controllers
             return Ok(hotel);
         }
         [HttpPost]
-        public IActionResult Post([FromBody] Hotel hotel)
+        public IActionResult Post([FromForm] HotelDto hotelDto)
         {
-            if (hotel == null)
-                return BadRequest();
-            if (!ModelState.IsValid)
-                return BadRequest();
+            if (hotelDto.ImageFile == null)
+            {
+                ModelState.AddModelError("ImageFile", "Image is required");
+                return BadRequest(ModelState);
+            }
+
+            string imageFileName = DateTime.Now.ToString("yyyyMMddHHmmssfff") +
+                                   Path.GetExtension(hotelDto.ImageFile.FileName);
+
+            string imagesFolder = Path.Combine(_env.WebRootPath, "images", "hotel");
+
+            if (!Directory.Exists(imagesFolder))
+                Directory.CreateDirectory(imagesFolder);
+
+            string fullPath = Path.Combine(imagesFolder, imageFileName);
+
+            using (var stream = System.IO.File.Create(fullPath))
+            {
+                hotelDto.ImageFile.CopyTo(stream);
+            }
+
+            var hotel = new Hotel()
+            {
+                Name = hotelDto.Name,
+                Description = hotelDto.Description ?? "",
+                Location = hotelDto.Location,
+                Country = hotelDto.Country,
+                Stars = hotelDto.Stars,
+                ImageFileName = imageFileName
+            };
+
             _repo.add(hotel);
             _repo.save();
-            
-            return CreatedAtAction(nameof(GetHotelById), new { id = hotel.Id }, hotel);
+            return Ok(hotel);
         }
+
         [HttpPut("{id}")]
-        public IActionResult Put(int id, Hotel hotel)
+        public IActionResult Put(int id, [FromForm] HotelDto hotelDto)
         {
+            var hotel = _repo.GetById(id);
             if (hotel == null)
-                return BadRequest();
-            if (hotel.Id != id)
-                return BadRequest("Id mismatched");
-            _repo.edit(hotel);
+            {
+                return NotFound();
+            }
+            string imageFileName = hotel.ImageFileName;
+            if (hotelDto.ImageFile != null)
+            {
+              //  Save Image on the Server
+                imageFileName = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+                imageFileName += Path.GetExtension(hotelDto.ImageFile.FileName);
+
+                string imagesFolder = _env.WebRootPath + "/images/hotel";
+                using (var stream = System.IO.File.Create(imagesFolder + imageFileName))
+                {
+                    hotelDto.ImageFile.CopyTo(stream);
+                }
+                //Delete Old Image
+                  System.IO.File.Delete(imagesFolder + hotel.ImageFileName);
+            }
+            //Update Hotel
+            hotel.Name = hotelDto.Name;
+            hotel.Description = hotelDto.Description ?? "";
+            hotel.Location = hotelDto.Location;
+            hotel.Country = hotelDto.Country;
+            
+            hotel.ImageFileName = imageFileName;
             _repo.save();
-
-            return NoContent(); //204 
-
+         
+            return Ok(hotel);
         }
         [HttpDelete("{id}")]
         public async Task<IActionResult> delete(int id)
