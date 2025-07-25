@@ -88,7 +88,6 @@ namespace HotelBookingApi.Controllers
                             userClaims.Add(new Claim(ClaimTypes.Role, roleName));
                         }
 
-                        // Secret key
                         var key = config["JWT:secretkey"];
                         var secretKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key));
 
