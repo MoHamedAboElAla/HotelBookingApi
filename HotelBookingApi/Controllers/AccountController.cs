@@ -116,18 +116,3 @@ namespace HotelBookingApi.Controllers
         }
     }
 }
-
-
-/*
- {
-  "name": "Ibrahem hassan",
-  "username": "ibrahem1234",
-  "email": "ibrahem.hassan@example.com",
-  "phoneNumber": "+201234567890",
-  "commercialRegister": "CR123456789",
-  "taxVisa": "TV987654321",
-  "hotelId": 42,
-  "password": "SecureP@ssw0rd!",
-  "confirmPassword": "SecureP@ssw0rd!"
-}
- */
