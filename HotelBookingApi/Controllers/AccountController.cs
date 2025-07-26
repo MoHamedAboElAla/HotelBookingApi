@@ -20,67 +20,72 @@ namespace HotelBookingApi.Controllers
         private readonly SignInManager<ApplicationUser> SignInManager;
         private readonly IConfiguration config;
 
-        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration config)
+        private readonly RoleManager<IdentityRole> roleManager;
+
+        public AccountController(
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            IConfiguration config,
+            RoleManager<IdentityRole> roleManager)
         {
             this.userManager = userManager;
-            SignInManager = signInManager;
+            this.SignInManager = signInManager;
             this.config = config;
+            this.roleManager = roleManager;
         }
 
-        [HttpPost("Register")]
-        public async Task<IActionResult> Register(RegisterDto userDTO)
+        [HttpPost("RegisterClient")]
+        public async Task<IActionResult> RegisterClient(RegisterClientDto userDTO)
         {
             if (ModelState.IsValid)
             {
-                ApplicationUser appUser = new ApplicationUser
+                var user = new ApplicationUser
                 {
-                    Email = userDTO.Email,
                     UserName = userDTO.UserName,
+                    Email = userDTO.Email,
                     PhoneNumber = userDTO.PhoneNumber,
-                    Name = userDTO.Name,
-                    CommercialRegister = userDTO.CommercialRegister,
-                    TaxVisa = userDTO.TaxVisa,
-                    HotelId = userDTO.HotelId
+                    Name = userDTO.Name
                 };
 
-                IdentityResult result = await userManager.CreateAsync(appUser, userDTO.Password);
+                var result = await userManager.CreateAsync(user, userDTO.Password);
 
                 if (result.Succeeded)
                 {
-                    await SignInManager.SignInAsync(appUser, false);
-                    return Created();
+                    if (!await roleManager.RoleExistsAsync("Client"))
+                        await roleManager.CreateAsync(new IdentityRole("Client"));
+
+                    await userManager.AddToRoleAsync(user, "Client");
+
+                    return Ok("Registered Successfully");
                 }
 
-                foreach (var item in result.Errors)
+                foreach (var error in result.Errors)
                 {
-                    ModelState.AddModelError("Password", item.Description);
+                    ModelState.AddModelError("", error.Description);
                 }
-
             }
 
             return BadRequest(ModelState);
         }
+
 
         [HttpPost("Login")]
         public async Task<IActionResult> login(LoginDTO userDTO)
         {
             if (ModelState.IsValid)
             {
-                //check
                 ApplicationUser user = await userManager.FindByNameAsync(userDTO.UserName);
                 if (user != null)
                 {
-
                     bool isPasswordValid = await userManager.CheckPasswordAsync(user, userDTO.Password);
                     if (isPasswordValid)
                     {
-                        // Generate token
                         List<Claim> userClaims = new List<Claim>
-                        {
-                            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                            new Claim(ClaimTypes.NameIdentifier, user.Id),
-                            new Claim(ClaimTypes.Name, user.Name)
-                        };
+                {
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id),
+                    new Claim(ClaimTypes.Name, user.Name)
+                };
 
                         var userRoles = await userManager.GetRolesAsync(user);
                         foreach (var roleName in userRoles)
@@ -105,6 +110,7 @@ namespace HotelBookingApi.Controllers
                         {
                             token = new JwtSecurityTokenHandler().WriteToken(myToken),
                             expires = DateTime.Now.AddHours(1),
+                            role = userRoles.FirstOrDefault()
                         });
                     }
                 }

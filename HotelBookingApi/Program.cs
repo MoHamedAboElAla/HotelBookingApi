@@ -1,4 +1,5 @@
 using HotelBookingApi.Models;
+using HotelBookingApi.Seeder;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,7 @@ namespace HotelBookingApi
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -33,7 +34,8 @@ namespace HotelBookingApi
             });
 
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<ITIContext>();
+                .AddEntityFrameworkStores<ITIContext>()
+                    .AddDefaultTokenProviders();
 
             builder.Services.AddAuthentication(options =>
             {
@@ -48,9 +50,14 @@ namespace HotelBookingApi
                 {
                     ValidateIssuer = true,
                     ValidIssuer = builder.Configuration["JWT:IssuerIP"],
+
                     ValidateAudience = true,
                     ValidAudience = builder.Configuration["JWT:AudienceIP"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["JWT:secretkey"]))
+
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["JWT:secretkey"])),
+
+                    ValidateLifetime = true
                 };
 
             });
@@ -73,6 +80,16 @@ namespace HotelBookingApi
 
             var app = builder.Build();
 
+            // Seed Roles
+            using (var scope = app.Services.CreateScope())
+            {
+                var serviceProvider = scope.ServiceProvider;
+                await Seeder.Seeder.SeedRolesAsync(serviceProvider);
+            }
+
+
+            //////////////////////////////
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -89,7 +106,6 @@ namespace HotelBookingApi
             app.UseAuthentication();
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 
