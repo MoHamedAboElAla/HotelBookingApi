@@ -1,6 +1,7 @@
 
 using HotelBookingApi.Data;
 using HotelBookingApi.IRepository;
+using HotelBookingApi.MappingConfig;
 using HotelBookingApi.Repository;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +22,8 @@ namespace HotelBookingApi
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddAutoMapper(op => op.AddProfile<MappConfig>());
+            builder.Services.AddScoped<ISeasonRepo, SeasonRepo>();
 
             var app = builder.Build();
 
