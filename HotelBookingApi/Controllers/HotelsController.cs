@@ -26,6 +26,53 @@ namespace HotelBookingApi.Controllers
                 return NotFound("No Hotels Found");
             return Ok(Hotels);
         }
+        // search and pagination
+        [HttpGet("search")]
+        public IActionResult SearchHotels(
+          [FromQuery] string? term,
+          [FromQuery] int page = 1,
+          [FromQuery] int pageSize = 10,
+          [FromQuery] string sortBy = "name",
+          [FromQuery] string sortDirection = "asc")
+        {
+            var hotels = _repo.SearchAndPaginate(term, page, pageSize, sortBy, sortDirection, out int totalCount);
+
+            var result = new
+            {
+                Data = hotels,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize,
+                SortBy = sortBy,
+                SortDirection = sortDirection
+            };
+
+            return Ok(result);
+        }
+
+        /*
+        [HttpGet("search")]
+        public IActionResult SearchHotels([FromQuery] string? term, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            var hotels = _repo.SearchAndPaginate(term, page, pageSize, out int totalCount);
+
+            var result = new
+            {
+                Data = hotels,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
+
+            return Ok(result);
+        }
+        */
+        // return all hotel with pagination without search
+        [HttpGet("paged")]
+        public IActionResult GetPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            return SearchHotels(null, page, pageSize);
+        }
         [HttpGet("{id}")]
         public IActionResult GetHotelById(int id)
         {
