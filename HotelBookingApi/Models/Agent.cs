@@ -24,10 +24,15 @@ namespace HotelBookingApi.Models
         [RegularExpression(@"^[a-zA-Z0-9\-]+$", ErrorMessage = "Only letters, numbers, and dashes allowed.")]
         public string? CommercialRegister { get; set; }
 
-        [Required]
+       
         [StringLength(20, MinimumLength = 5)]
         [RegularExpression(@"^[a-zA-Z0-9\-]+$", ErrorMessage = "Only letters, numbers, and dashes allowed.")]
-        public string TaxVisa { get; set; }
+        public string? TaxVisa { get; set; }
+        [Required]
+      
+        public string Role { get; set; } = "Agent";
+        [Required]
+        public string Password { get; set; }
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
         
     }
