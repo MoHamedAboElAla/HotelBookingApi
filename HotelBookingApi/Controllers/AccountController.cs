@@ -1,4 +1,5 @@
-﻿using HotelBookingApi.DTO.AccountDTO;
+﻿using HotelBookingApi.Data;
+using HotelBookingApi.Dtos;
 using HotelBookingApi.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -16,109 +17,119 @@ namespace HotelBookingApi.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> userManager;
-        private readonly SignInManager<ApplicationUser> SignInManager;
-        private readonly IConfiguration config;
+        private readonly AppDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        private readonly RoleManager<IdentityRole> roleManager;
-
-        public AccountController(
-            UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
-            IConfiguration config,
-            RoleManager<IdentityRole> roleManager)
+        public AccountController(AppDbContext context, IConfiguration configuration)
         {
-            this.userManager = userManager;
-            this.SignInManager = signInManager;
-            this.config = config;
-            this.roleManager = roleManager;
+            _context = context;
+            _configuration = configuration;
         }
 
-        [HttpPost("RegisterClient")]
-        public async Task<IActionResult> RegisterClient(RegisterClientDto userDTO)
+
+        [HttpGet]
+        public IActionResult GetUsers()
         {
-            if (ModelState.IsValid)
+            if (_context.Agents == null || !_context.Agents.Any())
             {
-                var user = new ApplicationUser
-                {
-                    UserName = userDTO.UserName,
-                    Email = userDTO.Email,
-                    PhoneNumber = userDTO.PhoneNumber,
-                    Name = userDTO.Name
-                };
+                return NotFound("No agents found.");
+            }
+            return Ok(_context.Agents.ToList());
+        }
 
-                var result = await userManager.CreateAsync(user, userDTO.Password);
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+          
+            var emailcount = _context.Agents.Count(e => e.Email == registerDto.Email);
+            if (emailcount > 0)
+            {
+                return BadRequest("Email already exists.");
+            }
+            var hashedPassword = new PasswordHasher<Agent>();
+            var encryptedPassword= hashedPassword.HashPassword(new Agent(), registerDto.Password);
+            var agent = new Agent
+            {
+                Name = registerDto.Name,
+                Email = registerDto.Email,
+                PhoneNumber = registerDto.PhoneNumber,
+                CommercialRegister = registerDto.CommercialRegister,
+                TaxVisa = registerDto.TaxVisa,
+                Role = "Agent",
+            };
+       
+            agent.Password = encryptedPassword;
+            _context.Agents.Add(agent);
+            await _context.SaveChangesAsync();
+            return Ok(new { Message = "Registration successful." });
+        }
 
-                if (result.Succeeded)
-                {
-                    if (!await roleManager.RoleExistsAsync("Client"))
-                        await roleManager.CreateAsync(new IdentityRole("Client"));
 
-                    await userManager.AddToRoleAsync(user, "Client");
 
-                    return Ok("Registered Successfully");
-                }
+        private string CreateToken(Agent user)
+        {
+            //Claims that contain inforamtion about the user   
+            List<Claim> claims = new List<Claim>
+            {
+               new Claim("id",""+ user.Id),
+                new Claim(ClaimTypes.Name, user.Name),
+                new Claim(ClaimTypes.Role, user.Role)
+            };
 
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError("", error.Description);
-                }
+            //JWT Token Generation
+            var strKey = _configuration["JwtSettings:Key"];
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(strKey));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["JwtSettings:Issuer"],
+                audience: _configuration["JwtSettings:Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(30),
+                signingCredentials: creds
+            );
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+            return jwt;
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
             }
 
-            return BadRequest(ModelState);
-        }
-
-
-        [HttpPost("Login")]
-        public async Task<IActionResult> login(LoginDTO userDTO)
-        {
-            if (ModelState.IsValid)
+            var agent = _context.Agents.FirstOrDefault(a => a.Email == loginDto.Email);
+            if (agent == null)
             {
-                ApplicationUser user = await userManager.FindByNameAsync(userDTO.UserName);
-                if (user != null)
-                {
-                    bool isPasswordValid = await userManager.CheckPasswordAsync(user, userDTO.Password);
-                    if (isPasswordValid)
-                    {
-                        List<Claim> userClaims = new List<Claim>
-                {
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim(ClaimTypes.NameIdentifier, user.Id),
-                    new Claim(ClaimTypes.Name, user.Name)
-                };
-
-                        var userRoles = await userManager.GetRolesAsync(user);
-                        foreach (var roleName in userRoles)
-                        {
-                            userClaims.Add(new Claim(ClaimTypes.Role, roleName));
-                        }
-
-                        var key = config["JWT:secretkey"];
-                        var secretKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key));
-
-                        SigningCredentials signingCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
-
-                        JwtSecurityToken myToken = new JwtSecurityToken(
-                            audience: config["JWT:AudienceIP"],
-                            issuer: config["JWT:IssuerIP"],
-                            expires: DateTime.Now.AddHours(1),
-                            claims: userClaims,
-                            signingCredentials: signingCredentials
-                        );
-
-                        return Ok(new
-                        {
-                            token = new JwtSecurityTokenHandler().WriteToken(myToken),
-                            expires = DateTime.Now.AddHours(1),
-                            role = userRoles.FirstOrDefault()
-                        });
-                    }
-                }
-                ModelState.AddModelError("username", "User name or password invalid");
+                return Unauthorized("Invalid email or password.");
             }
 
-            return BadRequest(ModelState);
+            var passwordHasher = new PasswordHasher<Agent>();
+            var result = passwordHasher.VerifyHashedPassword(agent, agent.Password, loginDto.Password);
+
+            if (result == PasswordVerificationResult.Failed)
+            {
+                return Unauthorized("Invalid email or password.");
+            }
+
+            var jwt = CreateToken(agent);
+            var response = new
+            {
+                token = jwt,
+                Message = "Login successful"
+            };
+            return Ok(response);
         }
+
+
     }
 }
 

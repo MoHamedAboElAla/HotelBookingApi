@@ -31,7 +31,6 @@ namespace HotelBookingApi.Seeder
                     UserName = "admin",
                     Email = adminEmail,
                     Name = "Super Admin"
-                    // ❌ لا تضيف HotelId ولا CommercialRegister
                 };
 
                 var result = await userManager.CreateAsync(newAdmin, "Admin@123");
