@@ -45,6 +45,9 @@ namespace HotelBookingApi
             builder.Services.AddAutoMapper(op => op.AddProfile<MappConfig>());
             builder.Services.AddScoped<ISeasonRepo, SeasonRepo>();
 
+            builder.Services.AddScoped<IRoomRepo, RoomRepo>();
+
+
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options => {
                 options.TokenValidationParameters = new TokenValidationParameters
