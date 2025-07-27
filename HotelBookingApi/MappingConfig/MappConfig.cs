@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using HotelBooking.Domain.Models;
+using HotelBookingApi.Dtos.RoomDTOS;
 using HotelBookingApi.DTOs.SeasonDTOs;
+using HotelBookingApi.Models;
 
 namespace HotelBookingApi.MappingConfig
 {
@@ -16,6 +18,11 @@ namespace HotelBookingApi.MappingConfig
 
 
             CreateMap<EditSeasonDTO, Season>();
+
+            CreateMap<Room, displayRoom>().AfterMap(
+                (src, dest) => dest.HotelName = src?.Hotel.Name
+                );
+            CreateMap<AddRoom, Room>().ReverseMap();
         }
     }
 }
