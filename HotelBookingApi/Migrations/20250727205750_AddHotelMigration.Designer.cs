@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBookingApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250725171805_AddSeasonandBookingandAgentTableDb")]
-    partial class AddSeasonandBookingandAgentTableDb
+    [Migration("20250727205750_AddHotelMigration")]
+    partial class AddHotelMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -36,6 +36,9 @@ namespace HotelBookingApi.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("HotelId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -48,6 +51,8 @@ namespace HotelBookingApi.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("HotelId");
 
                     b.ToTable("Seasons");
                 });
@@ -73,12 +78,19 @@ namespace HotelBookingApi.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("TaxVisa")
+                    b.Property<string>("Role")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TaxVisa")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
@@ -150,7 +162,8 @@ namespace HotelBookingApi.Migrations
                         .HasMaxLength(700)
                         .HasColumnType("nvarchar(700)");
 
-                    b.Property<string>("ImageUrl")
+                    b.Property<string>("ImageFileName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Location")
@@ -214,6 +227,13 @@ namespace HotelBookingApi.Migrations
                     b.ToTable("Rooms");
                 });
 
+            modelBuilder.Entity("HotelBooking.Domain.Models.Season", b =>
+                {
+                    b.HasOne("HotelBookingApi.Models.Hotel", null)
+                        .WithMany("Seasons")
+                        .HasForeignKey("HotelId");
+                });
+
             modelBuilder.Entity("HotelBookingApi.Models.Booking", b =>
                 {
                     b.HasOne("HotelBookingApi.Models.Agent", "Agent")
@@ -221,7 +241,7 @@ namespace HotelBookingApi.Migrations
                         .HasForeignKey("AgentId");
 
                     b.HasOne("HotelBookingApi.Models.Hotel", "Hotel")
-                        .WithMany()
+                        .WithMany("Bookings")
                         .HasForeignKey("HotelId");
 
                     b.HasOne("HotelBookingApi.Models.Room", "Room")
@@ -242,7 +262,7 @@ namespace HotelBookingApi.Migrations
             modelBuilder.Entity("HotelBookingApi.Models.Room", b =>
                 {
                     b.HasOne("HotelBookingApi.Models.Hotel", "Hotel")
-                        .WithMany()
+                        .WithMany("Rooms")
                         .HasForeignKey("HotelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -258,6 +278,15 @@ namespace HotelBookingApi.Migrations
             modelBuilder.Entity("HotelBookingApi.Models.Agent", b =>
                 {
                     b.Navigation("Bookings");
+                });
+
+            modelBuilder.Entity("HotelBookingApi.Models.Hotel", b =>
+                {
+                    b.Navigation("Bookings");
+
+                    b.Navigation("Rooms");
+
+                    b.Navigation("Seasons");
                 });
 
             modelBuilder.Entity("HotelBookingApi.Models.Room", b =>

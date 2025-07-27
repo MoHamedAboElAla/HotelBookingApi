@@ -4,16 +4,18 @@ namespace HotelBookingApi.IRepository
 {
     public interface IHotelRepository
     {
-        public List<Hotel> GetAll();
-        public Hotel GetById(int id);
-        public void add(Hotel hotel);
-        public void edit(Hotel hotel);
-        public void remove(int id);
+        Task<List<Hotel>> GetAllAsync();
+        Task<Hotel?> GetByIdAsync(int id);
+        Task AddAsync(Hotel hotel);
+        Task EditAsync(Hotel hotel);
+        Task RemoveAsync(int id);
+        Task SaveAsync();
 
-        public void save();
-
-
-
-
+        Task<(List<Hotel> Hotels, int TotalCount)> SearchAndPaginateAsync(
+            string? searchTerm,
+            int page,
+            int pageSize,
+            string sortBy,
+            string sortDirection);
     }
 }
