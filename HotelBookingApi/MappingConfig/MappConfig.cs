@@ -23,6 +23,8 @@ namespace HotelBookingApi.MappingConfig
                 (src, dest) => dest.HotelName = src?.Hotel.Name
                 );
             CreateMap<AddRoom, Room>().ReverseMap();
+            CreateMap<UpdateRoomDto, Room>().ReverseMap();
+
         }
     }
 }

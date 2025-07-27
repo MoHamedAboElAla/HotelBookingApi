@@ -42,7 +42,15 @@ namespace HotelBookingApi.Repository
         {
             db.SaveChanges();
         }
+        public IEnumerable<Room> GetAvailableRooms(DateTime startDate, DateTime endDate)
+        {
+            var unavailableRoomIds = db.Bookings
+                .Where(b => !(endDate <= b.CheckInDate || startDate >= b.CheckOutDate))
+                .Select(b => b.RoomId)
+                .ToList();
 
+            return db.Rooms.Where(r => !unavailableRoomIds.Contains(r.Id));
+        }
 
     }
 }

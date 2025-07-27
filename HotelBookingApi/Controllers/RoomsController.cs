@@ -55,19 +55,25 @@ namespace HotelBookingApi.Controllers
             else return BadRequest(ModelState);
         }
         [HttpPut("{id}")]
-        public IActionResult Update(Room r, int id)
+        public IActionResult UpdateRoom(int id, [FromBody] UpdateRoomDto dto)
         {
-            if (r == null) return BadRequest();
-            if (r.Id != id) return BadRequest();
-            if (ModelState.IsValid)
-            {
-                room.Update(r);
-                room.Save();
-                return NoContent();
-            }
-            else return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var existingRoom = room.GetbyId(id);
+            if (existingRoom == null)
+                return NotFound($"Room with id {id} not found.");
+
+            
+            map.Map(dto, existingRoom);
+
+            room.Update(existingRoom);
+            room.Save();
+
+            return NoContent(); 
         }
-        [HttpDelete]
+
+        [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
             Room r = room.GetbyId(id);
@@ -76,6 +82,17 @@ namespace HotelBookingApi.Controllers
             room.Delete(r);
             room.Save();
             return Ok(roomDTO);
+        }
+        [HttpGet("available")]
+        public ActionResult<IEnumerable<Room>> GetAvailableRooms([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            if (startDate >= endDate)
+                return BadRequest("Start date must be before end date.");
+
+            var availableRooms = room.GetAvailableRooms(startDate, endDate);
+            if (availableRooms == null)
+                return NotFound("No available rooms found for the given date range.");
+            return Ok(availableRooms);
         }
 
     }

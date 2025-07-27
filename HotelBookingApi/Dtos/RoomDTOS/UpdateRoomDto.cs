@@ -1,10 +1,8 @@
-﻿using HotelBookingApi.Models;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace HotelBookingApi.Dtos.RoomDTOS
 {
-    public class AddRoom
+    public class UpdateRoomDto
     {
         public int RoomNumber { get; set; }
 
@@ -13,10 +11,14 @@ namespace HotelBookingApi.Dtos.RoomDTOS
 
         [Required, Range(500.00, 10000.00)]
         public decimal PricePerNight { get; set; }
+
         public bool IsAvailable { get; set; } = true;
+
         [Url]
         public string? ImageUrl { get; set; }
+
         [Required]
         public int HotelId { get; set; }
     }
 }
+
