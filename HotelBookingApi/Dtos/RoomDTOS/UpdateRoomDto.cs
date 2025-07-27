@@ -14,8 +14,7 @@ namespace HotelBookingApi.Dtos.RoomDTOS
 
         public bool IsAvailable { get; set; } = true;
 
-        [Url]
-        public string? ImageUrl { get; set; }
+        public IFormFile ?Image { get; set; }
 
         [Required]
         public int HotelId { get; set; }

@@ -40,22 +40,42 @@ namespace HotelBookingApi.Controllers
                 return Ok(RoomDto);
             
         }
-
         [HttpPost]
-        public IActionResult add( AddRoom RDTO)
+        public IActionResult Add([FromForm] AddRoom RDTO)
         {
             if (RDTO == null) return BadRequest();
+
             if (ModelState.IsValid)
             {
                 Room r = map.Map<Room>(RDTO);
+
+                if (RDTO.Image != null && RDTO.Image.Length > 0)
+                {
+                    string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                    Directory.CreateDirectory(uploadsFolder); // إن لم يكن موجودًا
+
+                    string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(RDTO.Image.FileName);
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        RDTO.Image.CopyTo(stream);
+                    }
+
+                    r.ImageUrl = "/uploads/" + uniqueFileName; 
+                }
+
                 room.Add(r);
                 room.Save();
+
                 return CreatedAtAction("GetById", new { id = r.Id }, r);
             }
-            else return BadRequest(ModelState);
+
+            return BadRequest(ModelState);
         }
+
         [HttpPut("{id}")]
-        public IActionResult UpdateRoom(int id, [FromBody] UpdateRoomDto dto)
+        public IActionResult UpdateRoom(int id, [FromForm] UpdateRoomDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -64,14 +84,30 @@ namespace HotelBookingApi.Controllers
             if (existingRoom == null)
                 return NotFound($"Room with id {id} not found.");
 
-            
             map.Map(dto, existingRoom);
+
+            if (dto.Image != null && dto.Image.Length > 0)
+            {
+                string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                Directory.CreateDirectory(uploadsFolder);
+
+                string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.Image.FileName);
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    dto.Image.CopyTo(stream);
+                }
+
+                existingRoom.ImageUrl = "/uploads/" + uniqueFileName;
+            }
 
             room.Update(existingRoom);
             room.Save();
 
-            return NoContent(); 
+            return NoContent();
         }
+
 
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
