@@ -3,6 +3,7 @@ using HotelBookingApi.Data;
 using HotelBookingApi.IRepository;
 using HotelBookingApi.MappingConfig;
 using HotelBookingApi.Repository;
+using HotelBookingApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -44,6 +45,8 @@ namespace HotelBookingApi
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(op => op.AddProfile<MappConfig>());
             builder.Services.AddScoped<ISeasonRepo, SeasonRepo>();
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<IImageUrlService, ImageUrlService>();
 
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options => {

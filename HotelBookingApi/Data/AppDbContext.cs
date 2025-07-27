@@ -24,6 +24,11 @@ namespace HotelBookingApi.Data
             modelBuilder.Entity<Room>()
                 .HasIndex(r => new { r.RoomNumber, r.HotelId })
                 .IsUnique();
+
+            //modelBuilder.Entity<Hotel>()
+            //.HasMany(h => h.Agents)
+            //.WithMany(a => a.Hotels)
+            //.UsingEntity(j => j.ToTable("HotelAgents"));
         }
 
     }

@@ -1,98 +1,126 @@
 ﻿using HotelBookingApi.Data;
 using HotelBookingApi.IRepository;
 using HotelBookingApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace HotelBookingApi.Repository
 {
     public class HotelRepository : IHotelRepository
     {
-        AppDbContext _dbcontext;
+        private readonly AppDbContext _context;
 
-        public HotelRepository(AppDbContext dbcontext)
+        public HotelRepository(AppDbContext context)
         {
-            _dbcontext = dbcontext;
-        }
-        public void add(Hotel hotel)
-        {
-            _dbcontext.Hotels.Add(hotel);
+            _context = context;
         }
 
-        public void edit(Hotel hotel)
+        public async Task<List<Hotel>> GetAllAsync()
         {
-            _dbcontext.Entry(hotel).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+            //return await _context.Hotels
+            //    .Include(h => h.Rooms)
+            //    .Include(h => h.Seasons)
+            //    .Include(h => h.Bookings)
+            //    .Include(h => h.Agents)
+            //    .ToListAsync();
+            return await _context.Hotels
+                .Include(h => h.Rooms)
+                .Include(h => h.Seasons)
+                .Include(h => h.Bookings)
+                
+                .ToListAsync();
         }
 
-        public List<Hotel> GetAll()
+        public async Task<Hotel?> GetByIdAsync(int id)
         {
-            return _dbcontext.Hotels.ToList();
+            //return await _context.Hotels
+            //    .Include(h => h.Rooms)
+            //    .Include(h => h.Seasons)
+            //    .Include(h => h.Bookings)
+            //    .Include(h => h.Agents)
+            //    .FirstOrDefaultAsync(h => h.Id == id);
+
+            return await _context.Hotels
+                .Include(h => h.Rooms)
+                .Include(h => h.Seasons)
+                .Include(h => h.Bookings)
+                
+                .FirstOrDefaultAsync(h => h.Id == id);
         }
 
-        public Hotel GetById(int id)
+        public async Task AddAsync(Hotel hotel)
         {
-            return _dbcontext.Hotels.Find(id);
+            await _context.Hotels.AddAsync(hotel);
         }
 
-        public void remove(int id)
+        public Task EditAsync(Hotel hotel)
         {
-           Hotel hotel = _dbcontext.Hotels.Find(id);
-            _dbcontext.Hotels.Remove(hotel);
+            _context.Hotels.Update(hotel);
+            return Task.CompletedTask;
         }
 
-        public void save()
+        public async Task RemoveAsync(int id)
         {
-            _dbcontext.SaveChanges();
+            var hotel = await _context.Hotels.FindAsync(id);
+            if (hotel is not null)
+            {
+                _context.Hotels.Remove(hotel);
+            }
         }
-        /*
-                public List<Hotel> SearchAndPaginate(string? searchTerm, int page, int pageSize, out int totalCount)
-                {
-                    var query = _dbcontext.Hotels.AsQueryable();
 
-                    if (!string.IsNullOrWhiteSpace(searchTerm))
-                    {
-                        query = query.Where(h => h.Name!.Contains(searchTerm) || h.Country!.Contains(searchTerm));
-                    }
+        public async Task SaveAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
 
-                    totalCount = query.Count();
-
-                    return query
-                        .OrderBy(h => h.Name)
-                        .Skip((page - 1) * pageSize)
-                        .Take(pageSize)
-                        .ToList();
-                }
-                */
-        public List<Hotel> SearchAndPaginate(
+        public async Task<(List<Hotel> Hotels, int TotalCount)> SearchAndPaginateAsync(
             string? searchTerm,
             int page,
             int pageSize,
             string sortBy,
-            string sortDirection,
-            out int totalCount)
+            string sortDirection)
         {
-            var query = _dbcontext.Hotels.AsQueryable();
+            //var query = _context.Hotels
+            //    .Include(h => h.Rooms)
+            //    .Include(h => h.Seasons)
+            //    .Include(h => h.Bookings)
+            //    .Include(h => h.Agents)
+            //    .AsQueryable();
 
+            var query = _context.Hotels
+                .Include(h => h.Rooms)
+                .Include(h => h.Seasons)
+                .Include(h => h.Bookings)
+                
+                .AsQueryable();
+
+            // Search
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                query = query.Where(h => h.Name!.Contains(searchTerm) || h.Country!.Contains(searchTerm));
+                query = query.Where(h =>
+                    h.Name!.Contains(searchTerm) ||
+                    h.Location!.Contains(searchTerm) ||
+                    h.Country!.Contains(searchTerm));
             }
 
-            // Order
-            query = (sortBy.ToLower(), sortDirection.ToLower()) switch
+            // Total count
+            var totalCount = await query.CountAsync();
+
+            // Sorting
+            query = sortBy.ToLower() switch
             {
-                ("name", "asc") => query.OrderBy(h => h.Name),
-                ("name", "desc") => query.OrderByDescending(h => h.Name),
-                ("stars", "asc") => query.OrderBy(h => h.Stars),
-                ("stars", "desc") => query.OrderByDescending(h => h.Stars),
-                _ => query.OrderBy(h => h.Name) 
+                "name" => sortDirection == "desc" ? query.OrderByDescending(h => h.Name) : query.OrderBy(h => h.Name),
+                "country" => sortDirection == "desc" ? query.OrderByDescending(h => h.Country) : query.OrderBy(h => h.Country),
+                "stars" => sortDirection == "desc" ? query.OrderByDescending(h => h.Stars) : query.OrderBy(h => h.Stars),
+                _ => query.OrderBy(h => h.Id)
             };
 
-            totalCount = query.Count();
-
-            return query
+            // Pagination
+            var hotels = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .ToList();
-        }
+                .ToListAsync();
 
+            return (hotels, totalCount);
+        }
     }
 }
