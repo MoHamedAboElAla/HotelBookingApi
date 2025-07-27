@@ -52,7 +52,7 @@ namespace HotelBookingApi.Controllers
                 if (RDTO.Image != null && RDTO.Image.Length > 0)
                 {
                     string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-                    Directory.CreateDirectory(uploadsFolder); // إن لم يكن موجودًا
+                    Directory.CreateDirectory(uploadsFolder); 
 
                     string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(RDTO.Image.FileName);
                     string filePath = Path.Combine(uploadsFolder, uniqueFileName);
