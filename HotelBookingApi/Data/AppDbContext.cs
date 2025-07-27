@@ -21,6 +21,18 @@ namespace HotelBookingApi.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<Season>()
+       .Property(s => s.PriceFactor)
+       .HasPrecision(10, 2); // 10 digits, 2 decimal places
+
+            modelBuilder.Entity<Booking>()
+                .Property(b => b.TotalPrice)
+                .HasPrecision(10, 2);
+
+            modelBuilder.Entity<Room>()
+                .Property(r => r.PricePerNight)
+                .HasPrecision(10, 2);
+
             modelBuilder.Entity<Room>()
                 .HasIndex(r => new { r.RoomNumber, r.HotelId })
                 .IsUnique();

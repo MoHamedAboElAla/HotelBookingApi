@@ -48,6 +48,9 @@ namespace HotelBookingApi
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<IImageUrlService, ImageUrlService>();
 
+            builder.Services.AddScoped<IRoomRepo, RoomRepo>();
+
+
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options => {
                 options.TokenValidationParameters = new TokenValidationParameters
