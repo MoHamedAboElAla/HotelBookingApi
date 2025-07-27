@@ -20,9 +20,12 @@ namespace HotelBookingApi.MappingConfig
             CreateMap<EditSeasonDTO, Season>();
 
             CreateMap<Room, displayRoom>().AfterMap(
-                (src, dest) => dest.HotelName = src?.Hotel.Name
+                (src, dest) => dest.HotelName = src?.Hotel != null ? src.Hotel.Name : "Unknown Hotel"
+
                 );
             CreateMap<AddRoom, Room>().ReverseMap();
+            CreateMap<UpdateRoomDto, Room>().ReverseMap();
+
         }
     }
 }

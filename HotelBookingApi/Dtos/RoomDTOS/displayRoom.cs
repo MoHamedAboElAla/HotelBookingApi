@@ -1,4 +1,6 @@
-﻿namespace HotelBookingApi.Dtos.RoomDTOS
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace HotelBookingApi.Dtos.RoomDTOS
 {
     public class displayRoom
     {
@@ -7,7 +9,9 @@
         public string? RoomType { get; set; }
         public decimal PricePerNight { get; set; }
         public bool IsAvailable { get; set; }
-         public string HotelName { get; set; }
+        [Url]
+        public string? ImageUrl { get; set; } 
+        public string HotelName { get; set; }
 
 
     }

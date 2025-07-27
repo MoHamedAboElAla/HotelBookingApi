@@ -40,34 +40,76 @@ namespace HotelBookingApi.Controllers
                 return Ok(RoomDto);
             
         }
-
         [HttpPost]
-        public IActionResult add( AddRoom RDTO)
+        public IActionResult Add([FromForm] AddRoom RDTO)
         {
             if (RDTO == null) return BadRequest();
+
             if (ModelState.IsValid)
             {
                 Room r = map.Map<Room>(RDTO);
+
+                if (RDTO.Image != null && RDTO.Image.Length > 0)
+                {
+                    string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                    Directory.CreateDirectory(uploadsFolder); 
+
+                    string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(RDTO.Image.FileName);
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        RDTO.Image.CopyTo(stream);
+                    }
+
+                    r.ImageUrl = "/uploads/" + uniqueFileName; 
+                }
+
                 room.Add(r);
                 room.Save();
+
                 return CreatedAtAction("GetById", new { id = r.Id }, r);
             }
-            else return BadRequest(ModelState);
+
+            return BadRequest(ModelState);
         }
+
         [HttpPut("{id}")]
-        public IActionResult Update(Room r, int id)
+        public IActionResult UpdateRoom(int id, [FromForm] UpdateRoomDto dto)
         {
-            if (r == null) return BadRequest();
-            if (r.Id != id) return BadRequest();
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var existingRoom = room.GetbyId(id);
+            if (existingRoom == null)
+                return NotFound($"Room with id {id} not found.");
+
+            map.Map(dto, existingRoom);
+
+            if (dto.Image != null && dto.Image.Length > 0)
             {
-                room.Update(r);
-                room.Save();
-                return NoContent();
+                string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                Directory.CreateDirectory(uploadsFolder);
+
+                string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.Image.FileName);
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    dto.Image.CopyTo(stream);
+                }
+
+                existingRoom.ImageUrl = "/uploads/" + uniqueFileName;
             }
-            else return BadRequest(ModelState);
+
+            room.Update(existingRoom);
+            room.Save();
+
+            return NoContent();
         }
-        [HttpDelete]
+
+
+        [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
             Room r = room.GetbyId(id);
@@ -76,6 +118,17 @@ namespace HotelBookingApi.Controllers
             room.Delete(r);
             room.Save();
             return Ok(roomDTO);
+        }
+        [HttpGet("available")]
+        public ActionResult<IEnumerable<Room>> GetAvailableRooms([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            if (startDate >= endDate)
+                return BadRequest("Start date must be before end date.");
+
+            var availableRooms = room.GetAvailableRooms(startDate, endDate);
+            if (availableRooms == null)
+                return NotFound("No available rooms found for the given date range.");
+            return Ok(availableRooms);
         }
 
     }
