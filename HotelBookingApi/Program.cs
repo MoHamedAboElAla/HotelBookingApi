@@ -49,25 +49,27 @@ namespace HotelBookingApi
             builder.Services.AddScoped<IImageUrlService, ImageUrlService>();
 
             builder.Services.AddScoped<IRoomRepo, RoomRepo>();
+            builder.Services.AddScoped<IBookingRepo, BookingRepo>();
 
-
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options => {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
-                    ValidAudience = builder.Configuration["JwtSettings:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                   Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]))
-
-
-                };
-
-            });
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+     .AddJwtBearer(options =>
+     {
+         options.TokenValidationParameters = new TokenValidationParameters
+         {
+             ValidateIssuer = true,
+             ValidateAudience = true,
+             ValidateLifetime = true,
+             ValidateIssuerSigningKey = true,
+             ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+             ValidAudience = builder.Configuration["JwtSettings:Audience"],
+             IssuerSigningKey = new SymmetricSecurityKey(
+                 Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]))
+         };
+     });
 
             builder.Services.AddCors(options =>
             {
