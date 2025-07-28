@@ -1,4 +1,4 @@
-﻿using HotelBooking.Domain.Models;
+﻿
 using HotelBookingApi.CustomAttribute;
 using System.ComponentModel.DataAnnotations;
 

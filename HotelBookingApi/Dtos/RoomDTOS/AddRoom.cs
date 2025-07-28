@@ -15,7 +15,6 @@ namespace HotelBookingApi.Dtos.RoomDTOS
         [Required, Range(500.00, 10000.00)]
         public decimal PricePerNight { get; set; }
         public bool IsAvailable { get; set; } = true;
-        public string? Description { get; set; }
         public IFormFile ?Image { get; set; }
         [Required]
         public int HotelId { get; set; }
