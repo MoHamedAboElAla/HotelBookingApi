@@ -19,8 +19,10 @@ namespace HotelBookingApi.Models
         [Required]
         public bool IsAvailable { get; set; }
        
-        [Required, StringLength(700, MinimumLength = 20, ErrorMessage = "Description must be between 20 and 700 characters.")]
-        public string Description { get; set; }
+
+        [Required, StringLength(700, MinimumLength = 10, ErrorMessage = "Description must be between 20 and 700 characters.")]
+        public string? Description { get; set; }
+
         public string? ImageUrl { get; set; }
 
         [ForeignKey("Hotel")]

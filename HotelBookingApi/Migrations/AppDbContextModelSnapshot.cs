@@ -22,6 +22,40 @@ namespace HotelBookingApi.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("HotelBooking.Domain.Models.Season", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("HotelId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("PriceFactor")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HotelId");
+
+                    b.ToTable("Seasons");
+                });
+
+
             modelBuilder.Entity("HotelBookingApi.Models.Agent", b =>
                 {
                     b.Property<int>("Id")
@@ -93,8 +127,14 @@ namespace HotelBookingApi.Migrations
                     b.Property<int?>("SeasonId")
                         .HasColumnType("int");
 
+
                     b.Property<decimal?>("TotalPrice")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
 
                     b.HasKey("Id");
 
@@ -195,7 +235,8 @@ namespace HotelBookingApi.Migrations
                         .HasColumnType("bit");
 
                     b.Property<decimal>("PricePerNight")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<int>("RoomNumber")
                         .HasColumnType("int");
@@ -214,6 +255,7 @@ namespace HotelBookingApi.Migrations
 
                     b.ToTable("Rooms");
                 });
+
 
             modelBuilder.Entity("HotelBookingApi.Models.Season", b =>
                 {
@@ -245,6 +287,13 @@ namespace HotelBookingApi.Migrations
                     b.HasIndex("HotelId");
 
                     b.ToTable("Seasons");
+=======
+            modelBuilder.Entity("HotelBooking.Domain.Models.Season", b =>
+                {
+                    b.HasOne("HotelBookingApi.Models.Hotel", null)
+                        .WithMany("Seasons")
+                        .HasForeignKey("HotelId");
+
                 });
 
             modelBuilder.Entity("HotelBookingApi.Models.Booking", b =>

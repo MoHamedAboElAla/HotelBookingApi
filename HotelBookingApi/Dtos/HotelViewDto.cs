@@ -11,6 +11,6 @@
         // public string ImageFileName { get; set; }
         public string ImageUrl { get; set; } = "";
         public List<RoomDto>? Rooms { get; set; }
-        public List<SeasonDto>? Seasons { get; set; }
+      //  public List<SeasonDto>? Seasons { get; set; }
     }
 }

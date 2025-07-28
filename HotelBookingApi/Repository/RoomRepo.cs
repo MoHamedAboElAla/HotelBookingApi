@@ -16,12 +16,16 @@ namespace HotelBookingApi.Repository
 
         public List<Room> GetAll()
         {
-            return db.Rooms.Include("Hotel").ToList();
+
+            return db.Rooms.Include(r => r.Hotel).ToList();
+
 
         }
         public Room GetbyId(int id)
         {
-            return db.Rooms.Include("Hotel").FirstOrDefault(r => r.Id == id);
+
+            return db.Rooms.Include(r => r.Hotel).FirstOrDefault(r => r.Id == id);
+
         }
 
         public void Add(Room r)
