@@ -16,12 +16,12 @@ namespace HotelBookingApi.Repository
         //getall
         public List<Season> GetAll()
         {
-            return db.Seasons.Include(se => se.Bookings).ToList();
+            return db.Seasons.Include(se => se.Bookings).Include(se => se.Hotel).ToList();
         }
         //getbyid
         public Season GetById(int id)
         {
-            return db.Seasons.Include(se => se.Bookings).FirstOrDefault(se => se.Id == id);
+            return db.Seasons.Include(se => se.Bookings).Include(se => se.Hotel).FirstOrDefault(se => se.Id == id);
         }
         //add
         public void Add(Season s)

@@ -1,5 +1,6 @@
 ﻿using HotelBookingApi.Models;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HotelBooking.Domain.Models
 {
@@ -15,9 +16,11 @@ namespace HotelBooking.Domain.Models
         [Required(ErrorMessage = "End date is required")]
         public DateTime EndDate { get; set; }
         [Range(0.1, 1.0, ErrorMessage = "Price factor must be between 0.1 and 1.0 .")]
-
         public decimal PriceFactor { get; set; }
 
+        [ForeignKey("Hotel")]
+        public int? HotelId { get; set; }
+        public Hotel? Hotel { get; set; }
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
 

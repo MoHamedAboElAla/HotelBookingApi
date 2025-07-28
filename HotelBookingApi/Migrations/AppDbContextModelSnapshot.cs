@@ -229,9 +229,11 @@ namespace HotelBookingApi.Migrations
 
             modelBuilder.Entity("HotelBooking.Domain.Models.Season", b =>
                 {
-                    b.HasOne("HotelBookingApi.Models.Hotel", null)
+                    b.HasOne("HotelBookingApi.Models.Hotel", "Hotel")
                         .WithMany("Seasons")
                         .HasForeignKey("HotelId");
+
+                    b.Navigation("Hotel");
                 });
 
             modelBuilder.Entity("HotelBookingApi.Models.Booking", b =>

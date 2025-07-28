@@ -17,6 +17,7 @@ namespace HotelBookingApi.DTOs.SeasonDTOs
         [Range(0.1, 1.0, ErrorMessage = "Price factor must be between 0.1 and 1.0")]
         public decimal PriceFactor { get; set; }
 
+        public int? HotelId { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

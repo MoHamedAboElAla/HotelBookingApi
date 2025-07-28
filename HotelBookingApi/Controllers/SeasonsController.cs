@@ -83,7 +83,7 @@ namespace HotelBookingApi.Controllers
 
 
         //delete
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
             Season s = repo.GetById(id);
