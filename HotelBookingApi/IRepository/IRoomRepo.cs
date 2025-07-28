@@ -1,4 +1,4 @@
-﻿using HotelBooking.Domain.Models;
+﻿
 using HotelBookingApi.Models;
 
 namespace HotelBookingApi.IRepository
