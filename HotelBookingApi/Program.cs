@@ -1,29 +1,27 @@
-using HotelBookingApi.Models;
-using HotelBookingApi.Seeder;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+
 using HotelBookingApi.Data;
 using HotelBookingApi.IRepository;
 using HotelBookingApi.MappingConfig;
 using HotelBookingApi.Repository;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
+using System.Text;
 
 namespace HotelBookingApi
 {
     public class Program
     {
-        public static async Task Main(string[] args)
+        public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
 
             builder.Services.AddControllers();
-            
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options => {
@@ -68,10 +66,17 @@ namespace HotelBookingApi
 
             });
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll",
+                    policy =>
+                    {
+                        policy.AllowAnyOrigin()
+                              .AllowAnyHeader()
+                              .AllowAnyMethod();
+                    });
+            });
             var app = builder.Build();
-
-
-            //////////////////////////////
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -80,14 +85,12 @@ namespace HotelBookingApi
                 app.UseSwaggerUI();
             }
 
-            app.UseStaticFiles();
-
-            app.UseCors("MyPolicy");
-
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
             app.UseCors("AllowAll");
+
 
             app.MapControllers();
 
