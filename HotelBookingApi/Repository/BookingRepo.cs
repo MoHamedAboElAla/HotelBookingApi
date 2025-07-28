@@ -23,7 +23,21 @@ namespace HotelBookingApi.Repository
         }
 
 
+        public async Task<List<Booking>> GetBookingsByHotelIdAsync(int hotelId)
+        {
+            return await _context.Bookings
+           .Where(b => b.HotelId == hotelId)
+           .Include(b => b.Room)
+           .ToListAsync();
+        }
 
+        public async Task<List<Booking>> GetBookingsByRoomIdAsync(int roomId)
+        {
+            return await _context.Bookings
+            .Where(b => b.RoomId == roomId)
+            .Include(b => b.Hotel)
+            .ToListAsync();
+        }
         public async Task<BookingResponseDto> CreateBooking(CreateBookingDto bookingDto, int agentId)
         {
             var existingBookings = await _context.Bookings
@@ -103,22 +117,87 @@ namespace HotelBookingApi.Repository
 
         public void DeleteBooking(int id)
         {
-            throw new NotImplementedException();
+
+            var booking = _context.Bookings.Find(id);
+            if (booking == null)
+            {
+                return;
+            }
+
+            var room = _context.Rooms.Find(booking.RoomId);
+            if (room != null)
+            {
+                room.IsAvailable = true;
+                _context.Rooms.Update(room);
+            }
+
+            _context.Bookings.Remove(booking);
+            _context.SaveChanges();
+
         }
 
-        public IEnumerable<Booking> GetAllBookings()
+        
+
+
+        public IEnumerable<BookingWithAgentAndRoomDto> GetAllBookings()
         {
-            throw new NotImplementedException();
+
+            var booking = _context.Bookings
+     .Include(b => b.Agent)
+     .Include(b => b.Room).ToList();
+
+
+            return booking.Select(b => new BookingWithAgentAndRoomDto
+            {
+
+               BookingId =b.Id,
+                AgentName = b.Agent!.Name,
+                RoomNumber = b.Room!.RoomNumber,
+                AgentEmail = b.Agent!.Email,
+                RoomType = b.Room!.RoomType!,
+                RoomPrice = b.Room.PricePerNight,
+                CheckIn = b.CheckInDate,
+                CheckOut = b.CheckOutDate,
+                TotalPrice = b.TotalPrice
+               
+            });
         }
 
-        public Booking GetBookingById(int id)
+        public BookingWithAgentAndRoomDto GetBookingById(int id)
         {
-            throw new NotImplementedException();
+            var booking = _context.Bookings
+      .Include(b => b.Agent)
+      .Include(b => b.Room)
+      .FirstOrDefault(b => b.Id == id);
+
+            if (booking == null)
+                return null!;
+
+            var dto = new BookingWithAgentAndRoomDto
+            {
+                BookingId = booking.Id,
+                CheckIn = booking.CheckInDate,
+                CheckOut = booking.CheckOutDate,
+                AgentName = booking!.Agent!.Name,
+                AgentEmail = booking.Agent.Email,
+                RoomNumber = booking!.Room!.RoomNumber,
+                RoomType = booking.Room.RoomType!,
+                RoomPrice = booking.Room.PricePerNight,
+                TotalPrice = booking.TotalPrice,
+            };
+
+            return dto;
         }
 
-        public void UpdateBooking(Booking booking)
+        public  void UpdateBooking(Booking booking)
         {
-            throw new NotImplementedException();
+            _context.Bookings.Update(booking);
+        }
+
+        public Task Save()
+        {
+
+            return _context.SaveChangesAsync();
         }
     }
 }
