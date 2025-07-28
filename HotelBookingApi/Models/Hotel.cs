@@ -1,5 +1,4 @@
-﻿using HotelBooking.Domain.Models;
-using HotelBookingApi.CustomAttribute;
+﻿using HotelBookingApi.CustomAttribute;
 using System.ComponentModel.DataAnnotations;
 
 namespace HotelBookingApi.Models
@@ -23,6 +22,6 @@ namespace HotelBookingApi.Models
         public ICollection<Room> Rooms { get; set; } = new HashSet<Room>();
         public ICollection<Season> Seasons { get; set; } = new List<Season>();
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
-       // public ICollection<Agent> Agents { get; set; } = new List<Agent>();
+        //public ICollection<Agent> Agents { get; set; } = new List<Agent>();
     }
 }
