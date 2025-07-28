@@ -11,8 +11,12 @@ namespace HotelBookingApi.IRepository
         Task RemoveAsync(int id);
         Task SaveAsync();
 
-        public void save();
-
+        Task<(List<Hotel> Hotels, int TotalCount)> SearchAndPaginateAsync(
+            string? searchTerm,
+            int page,
+            int pageSize,
+            string sortBy,
+            string sortDirection);
 
 
 

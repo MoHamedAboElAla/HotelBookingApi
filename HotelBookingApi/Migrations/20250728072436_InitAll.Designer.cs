@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBookingApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250727165735_data")]
-    partial class data
+    [Migration("20250728072436_InitAll")]
+    partial class InitAll
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -232,7 +232,7 @@ namespace HotelBookingApi.Migrations
                         .HasForeignKey("AgentId");
 
                     b.HasOne("HotelBookingApi.Models.Hotel", "Hotel")
-                        .WithMany()
+                        .WithMany("Bookings")
                         .HasForeignKey("HotelId");
 
                     b.HasOne("HotelBookingApi.Models.Room", "Room")
@@ -253,7 +253,7 @@ namespace HotelBookingApi.Migrations
             modelBuilder.Entity("HotelBookingApi.Models.Room", b =>
                 {
                     b.HasOne("HotelBookingApi.Models.Hotel", "Hotel")
-                        .WithMany()
+                        .WithMany("Rooms")
                         .HasForeignKey("HotelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -269,6 +269,13 @@ namespace HotelBookingApi.Migrations
             modelBuilder.Entity("HotelBookingApi.Models.Agent", b =>
                 {
                     b.Navigation("Bookings");
+                });
+
+            modelBuilder.Entity("HotelBookingApi.Models.Hotel", b =>
+                {
+                    b.Navigation("Bookings");
+
+                    b.Navigation("Rooms");
                 });
 
             modelBuilder.Entity("HotelBookingApi.Models.Room", b =>

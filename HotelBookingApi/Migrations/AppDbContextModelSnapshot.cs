@@ -33,9 +33,6 @@ namespace HotelBookingApi.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("HotelId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -49,8 +46,6 @@ namespace HotelBookingApi.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("HotelId");
 
                     b.ToTable("Seasons");
                 });
@@ -227,13 +222,6 @@ namespace HotelBookingApi.Migrations
                     b.ToTable("Rooms");
                 });
 
-            modelBuilder.Entity("HotelBooking.Domain.Models.Season", b =>
-                {
-                    b.HasOne("HotelBookingApi.Models.Hotel", null)
-                        .WithMany("Seasons")
-                        .HasForeignKey("HotelId");
-                });
-
             modelBuilder.Entity("HotelBookingApi.Models.Booking", b =>
                 {
                     b.HasOne("HotelBookingApi.Models.Agent", "Agent")
@@ -285,8 +273,6 @@ namespace HotelBookingApi.Migrations
                     b.Navigation("Bookings");
 
                     b.Navigation("Rooms");
-
-                    b.Navigation("Seasons");
                 });
 
             modelBuilder.Entity("HotelBookingApi.Models.Room", b =>
