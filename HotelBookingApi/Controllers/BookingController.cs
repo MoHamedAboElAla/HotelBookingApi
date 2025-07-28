@@ -31,7 +31,7 @@ namespace HotelBookingApi.Controllers
 
             var result = await _bookingRepo.CreateBooking(bookingDto, agentId);
             if (result == null)
-                return BadRequest("Room or Agent not found.");
+                return BadRequest("يرجي التأكد من صحة البيانات المدخلة");
 
             return Ok(result);
 
