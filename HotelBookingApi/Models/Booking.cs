@@ -13,7 +13,7 @@ namespace HotelBookingApi.Models
         [Required, DataType(DataType.Date)]
         public DateTime CheckOutDate { get; set; }
 
-        public decimal TotalPrice { get; set; }
+        public decimal? TotalPrice { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
