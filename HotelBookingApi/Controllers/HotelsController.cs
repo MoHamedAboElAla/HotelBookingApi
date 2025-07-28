@@ -1,6 +1,9 @@
-﻿using HotelBookingApi.Dtos;
+﻿using AutoMapper;
+using HotelBookingApi.Dtos;
 using HotelBookingApi.IRepository;
 using HotelBookingApi.Models;
+using HotelBookingApi.Repository;
+using HotelBookingApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,110 +14,220 @@ namespace HotelBookingApi.Controllers
     [ApiController]
     public class HotelsController : ControllerBase
     {
-        IHotelRepository _repo;
+  
+
+        private readonly IHotelRepository _repo;
         private readonly IWebHostEnvironment _env;
-        public HotelsController(IHotelRepository repo, IWebHostEnvironment env)
+        private readonly IMapper _mapper;
+        private readonly IImageUrlService _imageUrlService;
+
+        public HotelsController(IHotelRepository repo, IWebHostEnvironment env, IMapper mapper, IImageUrlService imageUrlService)
         {
             _repo = repo;
             _env = env;
+            _mapper = mapper;
+            _imageUrlService = imageUrlService;
         }
+        /*
         [HttpGet]
-        public IActionResult GetAllHotels()
+        public async Task<IActionResult> GetAllHotels()
         {
-            var Hotels = _repo.GetAll();
-            if (Hotels == null)
+            var hotels = await _repo.GetAllAsync();
+            if (hotels == null || !hotels.Any())
                 return NotFound("No Hotels Found");
-            return Ok(Hotels);
+            return Ok(hotels);
         }
-        [HttpGet("{id}")]
-        public IActionResult GetHotelById(int id)
+        */
+        /*
+        [HttpGet]
+        public async Task<IActionResult> GetAllHotels()
         {
-            var hotel = _repo.GetById(id);
+            var hotels = await _repo.GetAllAsync();
+
+            if (hotels == null || !hotels.Any())
+                return NotFound("No Hotels Found");
+
+            var result = _mapper.Map<List<HotelViewDto>>(hotels);
+
+            foreach (var (dto, hotel) in result.Zip(hotels))
+            {
+                dto.ImageUrl = $"{Request.Scheme}://{Request.Host}/images/hotel/{hotel.ImageFileName}";
+            }
+
+            return Ok(result);
+        }
+        */
+        [HttpGet]
+        public async Task<IActionResult> GetAllHotels()
+        {
+            var hotels = await _repo.GetAllAsync();
+            if (hotels == null || !hotels.Any())
+                return NotFound("No Hotels Found");
+
+            var result = _mapper.Map<List<HotelViewDto>>(hotels);
+
+            for (int i = 0; i < result.Count; i++)
+            {
+                result[i].ImageUrl = _imageUrlService.GenerateHotelImageUrl(hotels[i].ImageFileName!);
+            }
+
+            return Ok(result);
+        }
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchHotels(
+            [FromQuery] string? term,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string sortBy = "name",
+            [FromQuery] string sortDirection = "asc")
+        {
+            var (hotels, totalCount) = await _repo.SearchAndPaginateAsync(term, page, pageSize, sortBy, sortDirection);
+
+            var result = new
+            {
+                Data = hotels,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize,
+                SortBy = sortBy,
+                SortDirection = sortDirection
+            };
+
+            return Ok(result);
+        }
+
+        [HttpGet("paged")]
+        public async Task<IActionResult> GetPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            return await SearchHotels(null, page, pageSize);
+        }
+        /*
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetHotelById(int id)
+        {
+            var hotel = await _repo.GetByIdAsync(id);
             if (hotel == null)
-                return NotFound($"hotel with id {id} not found");
+                return NotFound($"Hotel with id {id} not found");
             return Ok(hotel);
         }
-        [HttpPost]
-        public IActionResult Post([FromForm] HotelDto hotelDto)
+        */
+        /*
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetHotelById(int id)
         {
+            var hotel = await _repo.GetByIdAsync(id);
+            if (hotel == null)
+                return NotFound();
+
+            var dto = _mapper.Map<HotelViewDto>(hotel);
+            dto.ImageUrl = $"{Request.Scheme}://{Request.Host}/images/hotel/{hotel.ImageFileName}";
+
+            return Ok(dto);
+        }
+        */
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetHotelById(int id)
+        {
+            var hotel = await _repo.GetByIdAsync(id);
+            if (hotel == null)
+                return NotFound("Hotel not found");
+
+            var hotelDto = _mapper.Map<HotelViewDto>(hotel);
+            hotelDto.ImageUrl = _imageUrlService.GenerateHotelImageUrl(hotel.ImageFileName!);
+
+            return Ok(hotelDto);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([FromForm] HotelDto hotelDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             if (hotelDto.ImageFile == null)
             {
                 ModelState.AddModelError("ImageFile", "Image is required");
                 return BadRequest(ModelState);
             }
 
+          
             string imageFileName = DateTime.Now.ToString("yyyyMMddHHmmssfff") +
                                    Path.GetExtension(hotelDto.ImageFile.FileName);
-
             string imagesFolder = Path.Combine(_env.WebRootPath, "images", "hotel");
 
             if (!Directory.Exists(imagesFolder))
                 Directory.CreateDirectory(imagesFolder);
 
             string fullPath = Path.Combine(imagesFolder, imageFileName);
-
             using (var stream = System.IO.File.Create(fullPath))
             {
-                hotelDto.ImageFile.CopyTo(stream);
+                await hotelDto.ImageFile.CopyToAsync(stream);
             }
 
-            var hotel = new Hotel()
-            {
-                Name = hotelDto.Name,
-                Description = hotelDto.Description ?? "",
-                Location = hotelDto.Location,
-                Country = hotelDto.Country,
-                Stars = hotelDto.Stars,
-                ImageFileName = imageFileName
-            };
+            // Data Mapping
+            var hotel = _mapper.Map<Hotel>(hotelDto);
+            hotel.ImageFileName = imageFileName;
 
-            _repo.add(hotel);
-            _repo.save();
-            return Ok(hotel);
+            await _repo.AddAsync(hotel);
+            await _repo.SaveAsync();
+
+            return Ok(hotel); 
         }
 
+        
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromForm] HotelDto hotelDto)
+        public async Task<IActionResult> Update(int id, [FromForm] HotelDto hotelDto)
         {
-            var hotel = _repo.GetById(id);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var hotel = await _repo.GetByIdAsync(id);
             if (hotel == null)
-            {
                 return NotFound();
-            }
-            string imageFileName = hotel.ImageFileName;
+            //update all data without image
+            _mapper.Map(hotelDto, hotel); 
+
             if (hotelDto.ImageFile != null)
             {
-              //  Save Image on the Server
-                imageFileName = DateTime.Now.ToString("yyyyMMddHHmmssfff");
-                imageFileName += Path.GetExtension(hotelDto.ImageFile.FileName);
+                string imagesFolder = Path.Combine(_env.WebRootPath, "images", "hotel");
 
-                string imagesFolder = _env.WebRootPath + "/images/hotel";
-                using (var stream = System.IO.File.Create(imagesFolder + imageFileName))
+                //  delete old image
+                string oldImagePath = Path.Combine(imagesFolder, hotel.ImageFileName);
+                if (System.IO.File.Exists(oldImagePath))
                 {
-                    hotelDto.ImageFile.CopyTo(stream);
+                    System.IO.File.Delete(oldImagePath);
                 }
-                //Delete Old Image
-                  System.IO.File.Delete(imagesFolder + hotel.ImageFileName);
+
+                //  save new image
+                string newFileName = DateTime.Now.ToString("yyyyMMddHHmmssfff") +
+                                     Path.GetExtension(hotelDto.ImageFile.FileName);
+                string fullPath = Path.Combine(imagesFolder, newFileName);
+
+                using (var stream = System.IO.File.Create(fullPath))
+                {
+                    await hotelDto.ImageFile.CopyToAsync(stream);
+                }
+
+                hotel.ImageFileName = newFileName;
             }
-            //Update Hotel
-            hotel.Name = hotelDto.Name;
-            hotel.Description = hotelDto.Description ?? "";
-            hotel.Location = hotelDto.Location;
-            hotel.Country = hotelDto.Country;
-            
-            hotel.ImageFileName = imageFileName;
-            _repo.save();
-         
-            return Ok(hotel);
+
+            await _repo.EditAsync(hotel);
+            await _repo.SaveAsync();
+
+            return Ok(hotel); 
         }
+
+
         [HttpDelete("{id}")]
-        public async Task<IActionResult> delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            Hotel hotel = _repo.GetById(id);
+            var hotel = await _repo.GetByIdAsync(id);
             if (hotel == null)
-             return NotFound();
-            _repo.remove(id);
-            _repo.save();     
+                return NotFound();
+
+            await _repo.RemoveAsync(id);
+            await _repo.SaveAsync();
+
             return Ok(hotel);
         }
     }

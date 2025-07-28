@@ -33,6 +33,7 @@ namespace HotelBookingApi.Models
         public string Role { get; set; } = "Agent";
         [Required]
         public string Password { get; set; }
+        //public ICollection<Hotel> Hotels { get; set; } = new List<Hotel>();
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
         
     }
