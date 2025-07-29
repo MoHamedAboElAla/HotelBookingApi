@@ -62,7 +62,8 @@ namespace HotelBookingApi.Controllers
             var bookings = _bookingRepo.GetAllBookings();
             return Ok(bookings);
         }
-        [HttpDelete]
+        [HttpDelete("{id}")]
+
         public async Task<IActionResult> Delete(int id)
         {
 
@@ -88,7 +89,8 @@ namespace HotelBookingApi.Controllers
                 _roomRepo.Update(room);
                  _roomRepo.Save();
             }
-
+            _context.Bookings.Remove(booking);
+            await _context.SaveChangesAsync();
             return NoContent();
         }
        

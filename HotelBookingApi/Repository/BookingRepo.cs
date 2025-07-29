@@ -115,26 +115,26 @@ namespace HotelBookingApi.Repository
         }
 
 
-        public void DeleteBooking(int id)
-        {
+        //public void DeleteBooking(int id)
+        //{
 
-            var booking = _context.Bookings.Find(id);
-            if (booking == null)
-            {
-                return;
-            }
+        //    var booking = _context.Bookings.Find(id);
+        //    if (booking == null)
+        //    {
+        //        return;
+        //    }
 
-            var room = _context.Rooms.Find(booking.RoomId);
-            if (room != null)
-            {
-                room.IsAvailable = true;
-                _context.Rooms.Update(room);
-            }
+        //    var room = _context.Rooms.Find(booking.RoomId);
+        //    if (room != null)
+        //    {
+        //        room.IsAvailable = true;
+        //        _context.Rooms.Update(room);
+        //    }
 
-            _context.Bookings.Remove(booking);
-            _context.SaveChanges();
+        //    _context.Bookings.Remove(booking);
+        //    _context.SaveChanges();
 
-        }
+        //}
 
         
 

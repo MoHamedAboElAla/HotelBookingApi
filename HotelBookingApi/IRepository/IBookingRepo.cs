@@ -11,7 +11,7 @@ namespace HotelBookingApi.IRepository
        BookingWithAgentAndRoomDto GetBookingById(int id);
         IEnumerable<BookingWithAgentAndRoomDto> GetAllBookings();
         void UpdateBooking(Booking booking);
-        void DeleteBooking(int id);
+       // void DeleteBooking(int id);
         Task<List<Booking>> GetBookingsByHotelIdAsync(int hotelId);
         Task<List<Booking>> GetBookingsByRoomIdAsync(int roomId);
         Task Save();
