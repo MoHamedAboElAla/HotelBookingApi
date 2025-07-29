@@ -1,7 +1,7 @@
 ﻿using HotelBookingApi.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace HotelBooking.Domain.Models
+namespace HotelBookingApi.Models
 {
     public class Season
     {

@@ -1,4 +1,5 @@
-﻿using HotelBooking.Domain.Models;
+﻿
+using HotelBookingApi.Models;
 
 namespace HotelBookingApi.IRepository
 {
@@ -14,6 +15,8 @@ namespace HotelBookingApi.IRepository
         public void update(Season s);
         //delete
         public void delete(Season s);
+        Task<Season?> GetSeasonByDateRangeAsync(DateTime checkIn, DateTime checkOut);
+
         //save
         public void save();
     }

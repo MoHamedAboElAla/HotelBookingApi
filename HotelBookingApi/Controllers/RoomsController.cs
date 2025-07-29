@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using HotelBooking.Domain.Models;
 using HotelBookingApi.Dtos.RoomDTOS;
 using HotelBookingApi.DTOs.SeasonDTOs;
 using HotelBookingApi.IRepository;

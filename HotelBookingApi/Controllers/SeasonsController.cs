@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
-using HotelBooking.Domain.Models;
 using HotelBookingApi.Data;
 using HotelBookingApi.DTOs.SeasonDTOs;
 using HotelBookingApi.IRepository;
+using HotelBookingApi.Models;
 using HotelBookingApi.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

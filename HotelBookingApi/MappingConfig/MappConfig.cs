@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using HotelBooking.Domain.Models;
+
 using HotelBookingApi.Dtos;
 
 using HotelBookingApi.Dtos.RoomDTOS;
@@ -20,7 +20,9 @@ namespace HotelBookingApi.MappingConfig
 
 
             CreateMap<EditSeasonDTO, Season>();
-
+            CreateMap<Room, displayRoom>()
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+                .AfterMap((src, dest) => dest.HotelName = src.Hotel?.Name);
 
             CreateMap<HotelDto, Hotel>()
           .ForMember(dest => dest.ImageFileName, opt => opt.Ignore());
@@ -35,6 +37,7 @@ namespace HotelBookingApi.MappingConfig
                 (src, dest) => dest.HotelName = src?.Hotel != null ? src.Hotel.Name : "Unknown Hotel"
 
                 );
+
             CreateMap<AddRoom, Room>().ReverseMap();
             CreateMap<UpdateRoomDto, Room>().ReverseMap();
 
