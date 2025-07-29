@@ -40,6 +40,10 @@ namespace HotelBookingApi.MappingConfig
 
             CreateMap<AddRoom, Room>().ReverseMap();
             CreateMap<UpdateRoomDto, Room>().ReverseMap();
+            CreateMap<Hotel, HotelViewDto>();
+            CreateMap<Room, RoomDto>();
+
+
 
         }
     }
