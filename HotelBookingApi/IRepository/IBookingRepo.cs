@@ -1,5 +1,6 @@
 ﻿using HotelBookingApi.Dtos;
 using HotelBookingApi.Models;
+using System.Net;
 
 namespace HotelBookingApi.IRepository
 {
@@ -7,9 +8,12 @@ namespace HotelBookingApi.IRepository
     {
 
         Task<BookingResponseDto> CreateBooking(CreateBookingDto bookingDto, int agentId);
-        Booking GetBookingById(int id);
-        IEnumerable<Booking> GetAllBookings();
+       BookingWithAgentAndRoomDto GetBookingById(int id);
+        IEnumerable<BookingWithAgentAndRoomDto> GetAllBookings();
         void UpdateBooking(Booking booking);
-        void DeleteBooking(int id);
+       // void DeleteBooking(int id);
+        Task<List<Booking>> GetBookingsByHotelIdAsync(int hotelId);
+        Task<List<Booking>> GetBookingsByRoomIdAsync(int roomId);
+        Task Save();
     }
 }

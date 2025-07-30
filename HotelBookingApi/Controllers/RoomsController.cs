@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using HotelBookingApi.Data;
 using HotelBookingApi.Dtos.RoomDTOS;
 using HotelBookingApi.DTOs.SeasonDTOs;
 using HotelBookingApi.IRepository;
@@ -6,6 +7,7 @@ using HotelBookingApi.Models;
 using HotelBookingApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace HotelBookingApi.Controllers
 {
@@ -15,13 +17,14 @@ namespace HotelBookingApi.Controllers
     {
         IRoomRepo room;
         IMapper map;
+
         private readonly IImageUrlService _imageUrlService;
         public RoomsController(IRoomRepo _room, IMapper _map,IImageUrlService imageUrlService)
         {
             room = _room;
             map = _map;
             _imageUrlService = imageUrlService;
-        }
+
         /*
         [HttpGet]
         public IActionResult GetAll()
@@ -169,6 +172,33 @@ namespace HotelBookingApi.Controllers
             if (availableRooms == null)
                 return NotFound("No available rooms found for the given date range.");
             return Ok(availableRooms);
+        }
+        [HttpGet("hotel/{hotelId}")]
+        public async Task<ActionResult<IEnumerable<displayRoom>>> GetRoomsByHotel(int hotelId)
+        {
+            {
+                var rooms = await _context.Rooms.Include(r => r.Hotel)
+                      .Where(r => r.HotelId == hotelId)
+                      .Select(r => new displayRoom
+                      {
+                          Id = r.Id,
+                          RoomNumber = r.RoomNumber,
+                          RoomType = r.RoomType,
+                          Description = r.Description!,
+                          PricePerNight = r.PricePerNight,
+                          IsAvailable = r.IsAvailable,
+                          ImageUrl = r.ImageUrl,
+                          HotelName = r.Hotel!.Name!
+                      })
+                      .ToListAsync();
+
+                if (rooms == null || !rooms.Any())
+                {
+                    return NotFound("No rooms found for the specified hotel.");
+                }
+
+                return Ok(rooms);
+            }
         }
 
     }

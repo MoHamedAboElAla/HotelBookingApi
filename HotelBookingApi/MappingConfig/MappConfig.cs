@@ -41,6 +41,7 @@ namespace HotelBookingApi.MappingConfig
 
             CreateMap<AddRoom, Room>().ReverseMap();
             CreateMap<UpdateRoomDto, Room>().ReverseMap();
+
             CreateMap<Room, RoomDto>();
             CreateMap<Hotel, HotelViewDto>();
             CreateMap<RoomDto, Room>();
@@ -61,6 +62,11 @@ namespace HotelBookingApi.MappingConfig
             // Room <-> RoomDto
             CreateMap<Room, RoomDto>();
             CreateMap<RoomDto, Room>();
+
+            CreateMap<Hotel, HotelViewDto>();
+            CreateMap<Room, RoomDto>();
+
+
 
             // Room -> displayRoom
             CreateMap<Room, displayRoom>()
