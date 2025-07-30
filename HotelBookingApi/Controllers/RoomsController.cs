@@ -3,6 +3,7 @@ using HotelBookingApi.Dtos.RoomDTOS;
 using HotelBookingApi.DTOs.SeasonDTOs;
 using HotelBookingApi.IRepository;
 using HotelBookingApi.Models;
+using HotelBookingApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,11 +15,14 @@ namespace HotelBookingApi.Controllers
     {
         IRoomRepo room;
         IMapper map;
-        public RoomsController(IRoomRepo _room, IMapper _map)
+        private readonly IImageUrlService _imageUrlService;
+        public RoomsController(IRoomRepo _room, IMapper _map,IImageUrlService imageUrlService)
         {
             room = _room;
             map = _map;
+            _imageUrlService = imageUrlService;
         }
+        /*
         [HttpGet]
         public IActionResult GetAll()
         {
@@ -28,6 +32,26 @@ namespace HotelBookingApi.Controllers
             return Ok(map.Map<List<displayRoom>>((Rooms)));
 
         }
+        */
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            List<Room> rooms = room.GetAll();
+            if (rooms == null)
+                return BadRequest("No data");
+
+            var dtoList = map.Map<List<displayRoom>>(rooms);
+
+            foreach (var roomDto in dtoList)
+            {
+                roomDto.ImageUrl = _imageUrlService.GenerateRoomImageUrl(
+                    Path.GetFileName(roomDto.ImageUrl)
+                );
+            }
+
+            return Ok(dtoList);
+        }
+        /*
         [HttpGet("{id}")]
         public IActionResult GetbyId(int id)
         {
@@ -39,6 +63,23 @@ namespace HotelBookingApi.Controllers
                 return Ok(RoomDto);
             
         }
+        */
+
+        [HttpGet("{id}")]
+        public IActionResult GetbyId(int id)
+        {
+            Room r = room.GetbyId(id);
+            if (r == null) return NotFound("No Room Matched");
+
+            displayRoom roomDto = map.Map<displayRoom>(r);
+
+            roomDto.ImageUrl = _imageUrlService.GenerateRoomImageUrl(
+                Path.GetFileName(roomDto.ImageUrl)
+            );
+
+            return Ok(roomDto);
+        }
+
         [HttpPost]
         public IActionResult Add([FromForm] AddRoom RDTO)
         {

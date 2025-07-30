@@ -89,12 +89,12 @@ namespace HotelBookingApi
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
+            app.UseCors("AllowAll");
             app.UseHttpsRedirection();
-
+            app.UseStaticFiles();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseCors("AllowAll");
+           
 
 
             app.MapControllers();
