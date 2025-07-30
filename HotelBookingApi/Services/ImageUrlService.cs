@@ -8,14 +8,25 @@
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public string GenerateHotelImageUrl(string fileName)
+     
+        private string GenerateImageUrl(string folderName, string fileName)
         {
             var request = _httpContextAccessor.HttpContext?.Request;
 
             if (request == null || string.IsNullOrWhiteSpace(fileName))
                 return string.Empty;
 
-            return $"{request.Scheme}://{request.Host}/images/hotel/{fileName}";
+            return $"{request.Scheme}://{request.Host}/{folderName}/{fileName}";
+        }
+
+        public string GenerateHotelImageUrl(string fileName)
+        {
+            return GenerateImageUrl("images/hotel", fileName);
+        }
+
+        public string GenerateRoomImageUrl(string fileName)
+        {
+            return GenerateImageUrl("images/uploads", fileName); 
         }
     }
 }

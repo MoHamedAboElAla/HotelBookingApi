@@ -27,6 +27,13 @@ namespace HotelBookingApi.Controllers
             return int.Parse(agentIdClaim.Value);
         }
 
+        [HttpGet("count")]
+        public async Task<ActionResult<int>> GetCartCount()
+        {
+            var agentId = GetAgentIdFromToken();
+            var count = await _context.CartItems.CountAsync(c => c.AgentId == agentId);
+            return Ok(count);
+        }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CartItemDto>>> GetCartItems()
@@ -86,6 +93,34 @@ namespace HotelBookingApi.Controllers
             await _context.SaveChangesAsync();
             return Ok("Item removed from cart successfully.");
         }
-      
+        [HttpPost("confirm")]
+        public async Task<IActionResult> ConfirmPurchase()
+        {
+            var agentId = GetAgentIdFromToken();
+            var cartItems = await _context.CartItems
+             .Include(c => c.Booking)
+             .Where(c => c.AgentId == agentId)
+              .ToListAsync();
+            if (!cartItems.Any())
+                return BadRequest("السلة فارغة.");
+
+            foreach (var item in cartItems)
+            {
+                var booking = item.Booking;
+                if (booking == null) continue;
+
+                var room = await _context.Rooms.FindAsync(booking.RoomId);
+                if (room != null)
+                {
+                    room.IsAvailable = false;
+                    _context.Rooms.Update(room);
+                }
+            }
+            _context.CartItems.RemoveRange(cartItems);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "✅ تم تأكيد عملية الشراء بنجاح!" });
+        }
+
     }
     }

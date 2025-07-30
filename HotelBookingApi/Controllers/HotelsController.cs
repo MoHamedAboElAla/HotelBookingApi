@@ -28,39 +28,12 @@ namespace HotelBookingApi.Controllers
             _mapper = mapper;
             _imageUrlService = imageUrlService;
         }
-        /*
-        [HttpGet]
-        public async Task<IActionResult> GetAllHotels()
-        {
-            var hotels = await _repo.GetAllAsync();
-            if (hotels == null || !hotels.Any())
-                return NotFound("No Hotels Found");
-            return Ok(hotels);
-        }
-        */
-        /*
+
         [HttpGet]
         public async Task<IActionResult> GetAllHotels()
         {
             var hotels = await _repo.GetAllAsync();
 
-            if (hotels == null || !hotels.Any())
-                return NotFound("No Hotels Found");
-
-            var result = _mapper.Map<List<HotelViewDto>>(hotels);
-
-            foreach (var (dto, hotel) in result.Zip(hotels))
-            {
-                dto.ImageUrl = $"{Request.Scheme}://{Request.Host}/images/hotel/{hotel.ImageFileName}";
-            }
-
-            return Ok(result);
-        }
-        */
-        [HttpGet]
-        public async Task<IActionResult> GetAllHotels()
-        {
-            var hotels = await _repo.GetAllAsync();
             if (hotels == null || !hotels.Any())
                 return NotFound("No Hotels Found");
 
@@ -68,11 +41,23 @@ namespace HotelBookingApi.Controllers
 
             for (int i = 0; i < result.Count; i++)
             {
+
                 result[i].ImageUrl = _imageUrlService.GenerateHotelImageUrl(hotels[i].ImageFileName!);
+
+                if (result[i].Rooms != null)
+                {
+                    for (int j = 0; j < result[i].Rooms.Count; j++)
+                    {
+                        var roomImageFileName = hotels[i].Rooms.ElementAtOrDefault(j)?.ImageUrl;
+                        result[i].Rooms[j].ImageUrl = _imageUrlService.GenerateRoomImageUrl(roomImageFileName!);
+                    }
+                }
             }
 
             return Ok(result);
         }
+
+
         [HttpGet("search")]
         public async Task<IActionResult> SearchHotels(
             [FromQuery] string? term,
@@ -101,30 +86,7 @@ namespace HotelBookingApi.Controllers
         {
             return await SearchHotels(null, page, pageSize);
         }
-        /*
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetHotelById(int id)
-        {
-            var hotel = await _repo.GetByIdAsync(id);
-            if (hotel == null)
-                return NotFound($"Hotel with id {id} not found");
-            return Ok(hotel);
-        }
-        */
-        /*
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetHotelById(int id)
-        {
-            var hotel = await _repo.GetByIdAsync(id);
-            if (hotel == null)
-                return NotFound();
 
-            var dto = _mapper.Map<HotelViewDto>(hotel);
-            dto.ImageUrl = $"{Request.Scheme}://{Request.Host}/images/hotel/{hotel.ImageFileName}";
-
-            return Ok(dto);
-        }
-        */
         [HttpGet("{id}")]
         public async Task<IActionResult> GetHotelById(int id)
         {
@@ -185,20 +147,23 @@ namespace HotelBookingApi.Controllers
             if (hotel == null)
                 return NotFound();
             //update all data without image
-            _mapper.Map(hotelDto, hotel); 
+            _mapper.Map(hotelDto, hotel);
 
             if (hotelDto.ImageFile != null)
             {
                 string imagesFolder = Path.Combine(_env.WebRootPath, "images", "hotel");
 
-                //  delete old image
-                string oldImagePath = Path.Combine(imagesFolder, hotel.ImageFileName);
-                if (System.IO.File.Exists(oldImagePath))
+                // delete old image only if there is a new one
+                if (!string.IsNullOrEmpty(hotel.ImageFileName))
                 {
-                    System.IO.File.Delete(oldImagePath);
+                    string oldImagePath = Path.Combine(imagesFolder, hotel.ImageFileName);
+                    if (System.IO.File.Exists(oldImagePath))
+                    {
+                        System.IO.File.Delete(oldImagePath);
+                    }
                 }
 
-                //  save new image
+                // save new image
                 string newFileName = DateTime.Now.ToString("yyyyMMddHHmmssfff") +
                                      Path.GetExtension(hotelDto.ImageFile.FileName);
                 string fullPath = Path.Combine(imagesFolder, newFileName);
@@ -210,6 +175,8 @@ namespace HotelBookingApi.Controllers
 
                 hotel.ImageFileName = newFileName;
             }
+
+
 
             await _repo.EditAsync(hotel);
             await _repo.SaveAsync();
@@ -230,5 +197,39 @@ namespace HotelBookingApi.Controllers
 
             return Ok(hotel);
         }
+
+        [HttpGet("{hotelId}/rooms")]
+        public async Task<IActionResult> GetRoomsByHotel(int hotelId)
+        {
+            var rooms = await _repo.GetRoomsByHotelAsync(hotelId);
+            if (rooms == null || !rooms.Any())
+                return NotFound();
+
+            var roomDtos = _mapper.Map<List<RoomDto>>(rooms);
+            return Ok(roomDtos);
+        }
+
+        [HttpPost("upload")]
+        public async Task<IActionResult> UploadImage(IFormFile image)
+        {
+            if (image == null || image.Length == 0)
+                return BadRequest("No file uploaded.");
+
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            var uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(image.FileName)}";
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await image.CopyToAsync(stream);
+            }
+
+            var imageUrl = $"/uploads/{uniqueFileName}";
+            return Ok(new { imageUrl });
+        }
+
     }
 }

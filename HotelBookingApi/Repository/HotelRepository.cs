@@ -123,5 +123,11 @@ namespace HotelBookingApi.Repository
 
             return (hotels, totalCount);
         }
+        public async Task<IEnumerable<Room>> GetRoomsByHotelAsync(int hotelId)
+        {
+            return await _context.Rooms
+                .Where(r => r.HotelId == hotelId)
+                .ToListAsync();
+        }
     }
 }

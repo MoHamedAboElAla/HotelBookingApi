@@ -1,10 +1,13 @@
 ﻿using AutoMapper;
+using HotelBookingApi.Data;
 using HotelBookingApi.Dtos.RoomDTOS;
 using HotelBookingApi.DTOs.SeasonDTOs;
 using HotelBookingApi.IRepository;
 using HotelBookingApi.Models;
+using HotelBookingApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace HotelBookingApi.Controllers
 {
@@ -14,11 +17,15 @@ namespace HotelBookingApi.Controllers
     {
         IRoomRepo room;
         IMapper map;
-        public RoomsController(IRoomRepo _room, IMapper _map)
+
+        private readonly IImageUrlService _imageUrlService;
+        public RoomsController(IRoomRepo _room, IMapper _map, IImageUrlService imageUrlService)
         {
             room = _room;
             map = _map;
+            _imageUrlService = imageUrlService;
         }
+        /*
         [HttpGet]
         public IActionResult GetAll()
         {
@@ -28,107 +35,173 @@ namespace HotelBookingApi.Controllers
             return Ok(map.Map<List<displayRoom>>((Rooms)));
 
         }
-        [HttpGet("{id}")]
-        public IActionResult GetbyId(int id)
-        {
-            Room r = room.GetbyId(id);
-
-            if (r== null) return NotFound("No Room Matched");
-            
-                displayRoom RoomDto = map.Map<displayRoom>(r);
-                return Ok(RoomDto);
-            
-        }
-        [HttpPost]
-        public IActionResult Add([FromForm] AddRoom RDTO)
-        {
-            if (RDTO == null) return BadRequest();
-
-            if (ModelState.IsValid)
+        */
+        [HttpGet]
+            public IActionResult GetAll()
             {
-                Room r = map.Map<Room>(RDTO);
+                List<Room> rooms = room.GetAll();
+                if (rooms == null)
+                    return BadRequest("No data");
 
-                if (RDTO.Image != null && RDTO.Image.Length > 0)
+                var dtoList = map.Map<List<displayRoom>>(rooms);
+
+                foreach (var roomDto in dtoList)
+                {
+                    roomDto.ImageUrl = _imageUrlService.GenerateRoomImageUrl(
+                        Path.GetFileName(roomDto.ImageUrl)
+                    );
+                }
+
+                return Ok(dtoList);
+            }
+            /*
+            [HttpGet("{id}")]
+            public IActionResult GetbyId(int id)
+            {
+                Room r = room.GetbyId(id);
+
+                if (r== null) return NotFound("No Room Matched");
+
+                    displayRoom RoomDto = map.Map<displayRoom>(r);
+                    return Ok(RoomDto);
+
+            }
+            */
+
+            [HttpGet("{id}")]
+            public IActionResult GetbyId(int id)
+            {
+                Room r = room.GetbyId(id);
+                if (r == null) return NotFound("No Room Matched");
+
+                displayRoom roomDto = map.Map<displayRoom>(r);
+
+                roomDto.ImageUrl = _imageUrlService.GenerateRoomImageUrl(
+                    Path.GetFileName(roomDto.ImageUrl)
+                );
+
+                return Ok(roomDto);
+            }
+
+            [HttpPost]
+            public IActionResult Add([FromForm] AddRoom RDTO)
+            {
+                if (RDTO == null) return BadRequest();
+
+                if (ModelState.IsValid)
+                {
+                    Room r = map.Map<Room>(RDTO);
+
+                    if (RDTO.Image != null && RDTO.Image.Length > 0)
+                    {
+                        string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                        Directory.CreateDirectory(uploadsFolder);
+
+                        string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(RDTO.Image.FileName);
+                        string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            RDTO.Image.CopyTo(stream);
+                        }
+
+                        r.ImageUrl = "/uploads/" + uniqueFileName;
+                    }
+
+                    room.Add(r);
+                    room.Save();
+
+                    return CreatedAtAction("GetById", new { id = r.Id }, r);
+                }
+
+                return BadRequest(ModelState);
+            }
+
+            [HttpPut("{id}")]
+            public IActionResult UpdateRoom(int id, [FromForm] UpdateRoomDto dto)
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var existingRoom = room.GetbyId(id);
+                if (existingRoom == null)
+                    return NotFound($"Room with id {id} not found.");
+
+                map.Map(dto, existingRoom);
+
+                if (dto.Image != null && dto.Image.Length > 0)
                 {
                     string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-                    Directory.CreateDirectory(uploadsFolder); 
+                    Directory.CreateDirectory(uploadsFolder);
 
-                    string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(RDTO.Image.FileName);
+                    string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.Image.FileName);
                     string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
-                        RDTO.Image.CopyTo(stream);
+                        dto.Image.CopyTo(stream);
                     }
 
-                    r.ImageUrl = "/uploads/" + uniqueFileName; 
+                    existingRoom.ImageUrl = "/uploads/" + uniqueFileName;
                 }
 
-                room.Add(r);
+                room.Update(existingRoom);
                 room.Save();
 
-                return CreatedAtAction("GetById", new { id = r.Id }, r);
+                return NoContent();
             }
 
-            return BadRequest(ModelState);
-        }
 
-        [HttpPut("{id}")]
-        public IActionResult UpdateRoom(int id, [FromForm] UpdateRoomDto dto)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var existingRoom = room.GetbyId(id);
-            if (existingRoom == null)
-                return NotFound($"Room with id {id} not found.");
-
-            map.Map(dto, existingRoom);
-
-            if (dto.Image != null && dto.Image.Length > 0)
+            [HttpDelete("{id}")]
+            public IActionResult Delete(int id)
             {
-                string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-                Directory.CreateDirectory(uploadsFolder);
-
-                string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.Image.FileName);
-                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    dto.Image.CopyTo(stream);
-                }
-
-                existingRoom.ImageUrl = "/uploads/" + uniqueFileName;
+                Room r = room.GetbyId(id);
+                if (r == null) return NotFound();
+                displayRoom roomDTO = map.Map<displayRoom>(r);
+                room.Delete(r);
+                room.Save();
+                return Ok(roomDTO);
             }
+            [HttpGet("available")]
+            public ActionResult<IEnumerable<Room>> GetAvailableRooms([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+            {
+                if (startDate >= endDate)
+                    return BadRequest("Start date must be before end date.");
 
-            room.Update(existingRoom);
-            room.Save();
+                var availableRooms = room.GetAvailableRooms(startDate, endDate);
+                if (availableRooms == null)
+                    return NotFound("No available rooms found for the given date range.");
+                return Ok(availableRooms);
+            }
+          /*  [HttpGet("hotel/{hotelId}")]
+            public async Task<ActionResult<IEnumerable<displayRoom>>> GetRoomsByHotel(int hotelId)
+            {
+                {
+                    var rooms = await _context.Rooms.Include(r => r.Hotel)
+                          .Where(r => r.HotelId == hotelId)
+                          .Select(r => new displayRoom
+                          {
+                              Id = r.Id,
+                              RoomNumber = r.RoomNumber,
+                              RoomType = r.RoomType,
+                              Description = r.Description!,
+                              PricePerNight = r.PricePerNight,
+                              IsAvailable = r.IsAvailable,
+                              ImageUrl = r.ImageUrl,
+                              HotelName = r.Hotel!.Name!
+                          })
+                          .ToListAsync();
 
-            return NoContent();
-        }
+                    if (rooms == null || !rooms.Any())
+                    {
+                        return NotFound("No rooms found for the specified hotel.");
+                    }
 
-
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
-        {
-            Room r = room.GetbyId(id);
-            if (r == null) return NotFound();
-            displayRoom roomDTO = map.Map<displayRoom>(r);
-            room.Delete(r);
-            room.Save();
-            return Ok(roomDTO);
-        }
-        [HttpGet("available")]
-        public ActionResult<IEnumerable<Room>> GetAvailableRooms([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
-        {
-            if (startDate >= endDate)
-                return BadRequest("Start date must be before end date.");
-
-            var availableRooms = room.GetAvailableRooms(startDate, endDate);
-            if (availableRooms == null)
-                return NotFound("No available rooms found for the given date range.");
-            return Ok(availableRooms);
-        }
-
+                    return Ok(rooms);
+                }
+            }
+*/
+        
     }
 }
+
