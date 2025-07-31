@@ -63,7 +63,8 @@ namespace HotelBookingApi.Controllers
             return Ok(items);
         }
 
-        [HttpDelete("bookingId")]
+        [HttpDelete("{bookingId}")]
+
         public async Task<IActionResult> RemoveFromCart(int bookingId)
         {
             //1-Get AgentId
@@ -88,6 +89,11 @@ namespace HotelBookingApi.Controllers
                     room.IsAvailable = true; 
                     _context.Rooms.Update(room); 
                 }
+                if (booking.CheckInDate <= DateTime.Now && DateTime.Now < booking.CheckOutDate)
+                {
+                    return BadRequest("Cannot delete a booking that is currently active.");
+                }
+
                 _context.Bookings.Remove(booking);
             }
             await _context.SaveChangesAsync();

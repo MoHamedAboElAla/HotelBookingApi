@@ -73,10 +73,11 @@ namespace HotelBookingApi.Controllers
             {
                 return NotFound();
             }
-            if (booking.CheckInDate <= DateTime.Now)
+            if (booking.CheckInDate <= DateTime.Now && DateTime.Now < booking.CheckOutDate)
             {
-                return BadRequest("Cannot delete a booking that has already started.");
+                return BadRequest("Cannot delete a booking that is currently active.");
             }
+
             var room =  _roomRepo.GetbyId(booking.RoomId ??0 );
             var otherBookings = await _bookingRepo.GetBookingsByRoomIdAsync(room.Id);
 
