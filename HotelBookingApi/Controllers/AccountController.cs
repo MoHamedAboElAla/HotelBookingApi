@@ -6,8 +6,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web.Helpers;
 
 namespace HotelBookingApi.Controllers
 {
@@ -43,14 +48,14 @@ namespace HotelBookingApi.Controllers
             {
                 return BadRequest(ModelState);
             }
-          
+
             var emailcount = _context.Agents.Count(e => e.Email == registerDto.Email);
             if (emailcount > 0)
             {
                 return BadRequest("Email already exists.");
             }
             var hashedPassword = new PasswordHasher<Agent>();
-            var encryptedPassword= hashedPassword.HashPassword(new Agent(), registerDto.Password);
+            var encryptedPassword = hashedPassword.HashPassword(new Agent(), registerDto.Password);
             var agent = new Agent
             {
                 Name = registerDto.Name,
@@ -60,7 +65,7 @@ namespace HotelBookingApi.Controllers
                 TaxVisa = registerDto.TaxVisa,
                 Role = "Agent",
             };
-       
+
             agent.Password = encryptedPassword;
             _context.Agents.Add(agent);
             await _context.SaveChangesAsync();
@@ -74,7 +79,7 @@ namespace HotelBookingApi.Controllers
             //Claims that contain inforamtion about the user   
             List<Claim> claims = new List<Claim>
             {
-               new Claim(ClaimTypes.NameIdentifier,""+ user.Id),
+                new Claim(ClaimTypes.NameIdentifier,""+ user.Id),
                 new Claim(ClaimTypes.Name, user.Name),
                 new Claim(ClaimTypes.Role, user.Role)
             };
@@ -131,5 +136,112 @@ namespace HotelBookingApi.Controllers
         }
 
 
+        ////////////////////////////////////
+        [Authorize]
+        [HttpGet("Profile")]
+        public IActionResult GetProfile()
+        {
+            var agentIdClaim = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(agentIdClaim, out int agentId))
+            {
+                return Unauthorized("Invalid user ID.");
+            }
+
+            var user = _context.Agents.FirstOrDefault(u => u.Id == agentId);
+            if (user == null)
+            {
+                return Unauthorized("User not found.");
+            }
+
+            var profile = new ProfileDto
+            {
+                Name = user.Name,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                CommercialRegister = user.CommercialRegister,
+                TaxVisa = user.TaxVisa
+            };
+
+            return Ok(profile);
+        }
+
+
+        [Authorize]
+        [HttpPut("UpdateProfile")]
+        public IActionResult UpdateProfile([FromBody] ProfileDto updatedProfile)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var agentIdClaim = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(agentIdClaim, out int agentId))
+            {
+                return Unauthorized("Invalid user ID.");
+            }
+
+            var user = _context.Agents.Find(agentId);
+            if (user == null)
+            {
+                return Unauthorized("User not found.");
+            }
+
+            bool emailExists = _context.Agents.Any(a => a.Email == updatedProfile.Email && a.Id != agentId);
+            if (emailExists)
+            {
+                return BadRequest("Email is already used by another account.");
+            }
+
+            user.Name = updatedProfile.Name.Trim();
+            user.Email = updatedProfile.Email.Trim().ToLower();
+            user.PhoneNumber = updatedProfile.PhoneNumber.Trim();
+            user.CommercialRegister = updatedProfile.CommercialRegister?.Trim();
+            user.TaxVisa = updatedProfile.TaxVisa?.Trim();
+
+            _context.SaveChanges();
+
+            return Ok(new { message = "Profile updated successfully." });
+        }
+
+
+
+        [Authorize]
+        [HttpPut("UpdatePassword")]
+        public IActionResult UpdatePassword([FromBody] UpdatePasswordDto passwordDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var agentIdClaim = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(agentIdClaim, out int agentId))
+            {
+                return Unauthorized("Invalid user ID.");
+            }
+
+            var user = _context.Agents.Find(agentId);
+            if (user == null)
+            {
+                return Unauthorized("User not found.");
+            }
+
+            var passwordHasher = new PasswordHasher<Agent>();
+            var result = passwordHasher.VerifyHashedPassword(user, user.Password, passwordDto.CurrentPassword);
+
+            if (result == PasswordVerificationResult.Failed)
+            {
+                return BadRequest("Current password is incorrect.");
+            }
+
+            var encryptedPassword = passwordHasher.HashPassword(user, passwordDto.NewPassword);
+            user.Password = encryptedPassword;
+
+            _context.SaveChanges();
+
+            return Ok(new { message = "Password updated successfully." });
+        }
     }
 }
+/////////////////////////////

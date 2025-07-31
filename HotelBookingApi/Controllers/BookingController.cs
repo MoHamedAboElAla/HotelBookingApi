@@ -28,14 +28,14 @@ namespace HotelBookingApi.Controllers
         }
 
         [HttpPost("Book")]
-       [Authorize]
+        [Authorize]
         public async Task<IActionResult> CreateBooking([FromBody] CreateBookingDto bookingDto)
         {
 
-            
+
             var agentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
-            
+
 
             var result = await _bookingRepo.CreateBooking(bookingDto, agentId);
             if (result == null)

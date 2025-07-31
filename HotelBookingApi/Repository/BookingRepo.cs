@@ -15,7 +15,7 @@ namespace HotelBookingApi.Repository
         private readonly ISeasonRepo _seasonRepo;
         private readonly IRoomRepo _roomRepo;
 
-        public BookingRepo(AppDbContext context, ISeasonRepo seasonRepo , IRoomRepo roomRepo)
+        public BookingRepo(AppDbContext context, ISeasonRepo seasonRepo, IRoomRepo roomRepo)
         {
             _context = context;
             _seasonRepo = seasonRepo;
@@ -50,11 +50,11 @@ namespace HotelBookingApi.Repository
 
             if (!isRoomAvailable)
             {
-                return null!; 
+                return null!;
             }
             if (bookingDto.StartDate < DateTime.Today)
             {
-                return null!; 
+                return null!;
             }
 
             if (bookingDto.EndDate < DateTime.Today)
@@ -66,7 +66,7 @@ namespace HotelBookingApi.Repository
             {
                 return null!;
             }
-            var room =  _roomRepo.GetbyId(bookingDto.RoomId);
+            var room = _roomRepo.GetbyId(bookingDto.RoomId);
             if (room == null)
                 return null!;
 
@@ -85,12 +85,12 @@ namespace HotelBookingApi.Repository
             {
                 RoomId = bookingDto.RoomId,
                 CheckInDate = bookingDto.StartDate,
-                CheckOutDate= bookingDto.EndDate,
+                CheckOutDate = bookingDto.EndDate,
                 AgentId = agentId,
                 TotalPrice = totalPrice,
                 CreatedAt = DateTime.Now,
                 HotelId = room.HotelId,
-               
+
             };
             room.IsAvailable = false;
             _roomRepo.Update(room);
