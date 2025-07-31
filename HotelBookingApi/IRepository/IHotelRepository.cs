@@ -17,5 +17,7 @@ namespace HotelBookingApi.IRepository
             int pageSize,
             string sortBy,
             string sortDirection);
+
+        Task<IEnumerable<Room>> GetRoomsByHotelAsync(int hotelId);
     }
 }

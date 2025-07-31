@@ -24,7 +24,6 @@ namespace HotelBookingApi.Repository
             //    .ToListAsync();
             return await _context.Hotels
                 .Include(h => h.Rooms)
-                .Include(h => h.Seasons)
                 .Include(h => h.Bookings)
                 
                 .ToListAsync();
@@ -41,7 +40,6 @@ namespace HotelBookingApi.Repository
 
             return await _context.Hotels
                 .Include(h => h.Rooms)
-                .Include(h => h.Seasons)
                 .Include(h => h.Bookings)
                 
                 .FirstOrDefaultAsync(h => h.Id == id);
@@ -87,8 +85,7 @@ namespace HotelBookingApi.Repository
             //    .AsQueryable();
 
             var query = _context.Hotels
-                .Include(h => h.Rooms)
-                .Include(h => h.Seasons)
+                .Include(h => h.Rooms)        
                 .Include(h => h.Bookings)
                 
                 .AsQueryable();
@@ -121,6 +118,12 @@ namespace HotelBookingApi.Repository
                 .ToListAsync();
 
             return (hotels, totalCount);
+        }
+        public async Task<IEnumerable<Room>> GetRoomsByHotelAsync(int hotelId)
+        {
+            return await _context.Rooms
+                .Where(r => r.HotelId == hotelId)
+                .ToListAsync();
         }
     }
 }

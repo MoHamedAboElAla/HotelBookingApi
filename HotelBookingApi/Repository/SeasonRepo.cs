@@ -1,6 +1,6 @@
-﻿using HotelBooking.Domain.Models;
-using HotelBookingApi.Data;
+﻿using HotelBookingApi.Data;
 using HotelBookingApi.IRepository;
+using HotelBookingApi.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelBookingApi.Repository
@@ -37,6 +37,13 @@ namespace HotelBookingApi.Repository
         public void delete(Season s)
         {
             db.Seasons.Remove(s);
+        }
+        public Task<Season?> GetSeasonByDateRangeAsync(DateTime checkIn, DateTime checkOut)
+        {
+
+            return db.Seasons
+                .Where(s => s.StartDate <= checkIn && s.EndDate >= checkOut)
+                .FirstOrDefaultAsync();
         }
         //save
         public void save()

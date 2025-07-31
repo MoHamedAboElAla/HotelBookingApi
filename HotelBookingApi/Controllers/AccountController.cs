@@ -1,6 +1,7 @@
 ﻿using HotelBookingApi.Data;
 using HotelBookingApi.Dtos;
 using HotelBookingApi.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -24,6 +25,7 @@ namespace HotelBookingApi.Controllers
         }
 
 
+        [Authorize]
         [HttpGet]
         public IActionResult GetUsers()
         {
@@ -72,14 +74,14 @@ namespace HotelBookingApi.Controllers
             //Claims that contain inforamtion about the user   
             List<Claim> claims = new List<Claim>
             {
-               new Claim("id",""+ user.Id),
+               new Claim(ClaimTypes.NameIdentifier,""+ user.Id),
                 new Claim(ClaimTypes.Name, user.Name),
                 new Claim(ClaimTypes.Role, user.Role)
             };
 
             //JWT Token Generation
             var strKey = _configuration["JwtSettings:Key"];
-            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(strKey));
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(strKey!));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -118,6 +120,8 @@ namespace HotelBookingApi.Controllers
             }
 
             var jwt = CreateToken(agent);
+            Console.WriteLine("Key = " + _configuration["JwtSettings:Key"]);
+
             var response = new
             {
                 token = jwt,

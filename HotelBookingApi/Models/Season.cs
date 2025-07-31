@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace HotelBooking.Domain.Models
+namespace HotelBookingApi.Models
 {
     public class Season
     {
