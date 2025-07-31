@@ -67,7 +67,7 @@ namespace HotelBookingApi.Controllers
 
         //edit
         [HttpPut("{id}")]
-        public IActionResult Update(EditSeasonDTO sDTO, int id)
+        public IActionResult Update([FromBody]EditSeasonDTO sDTO, int id)
         {
             if(sDTO == null) return BadRequest();
             if (sDTO.Id != id) return BadRequest();
@@ -83,7 +83,7 @@ namespace HotelBookingApi.Controllers
 
 
         //delete
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
             Season s = repo.GetById(id);
@@ -93,6 +93,30 @@ namespace HotelBookingApi.Controllers
             repo.save();
             return Ok(sDTO);
         }
+
+
+        //Pagnation
+        [HttpGet("paged")]
+        public IActionResult GetPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            if (pageNumber <= 0 || pageSize <= 0)
+                return BadRequest("Page number and page size must be greater than zero.");
+
+            var seasons = repo.GetPaged(pageNumber, pageSize);
+            var totalCount = repo.GetTotalCount();
+
+            var result = new
+            {
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                Data = map.Map<List<DisplaySeasonDTO>>(seasons)
+            };
+
+            return Ok(result);
+        }
+
+
 
     }
 }

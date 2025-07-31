@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/HotelBookingApi/Migrations/20250726163915_AddPasswordAndRoleToAgent.Designer.cs
+/HotelBookingApi/Migrations/20250726164717_InitialCreate.cs
+/HotelBookingApi/Migrations/20250726164717_InitialCreate.Designer.cs

@@ -16,12 +16,12 @@ namespace HotelBookingApi.Repository
         //getall
         public List<Season> GetAll()
         {
-            return db.Seasons.Include(se => se.Bookings).ToList();
+            return db.Seasons.Include(se => se.Bookings).Include(se => se.Hotel).ToList();
         }
         //getbyid
         public Season GetById(int id)
         {
-            return db.Seasons.Include(se => se.Bookings).FirstOrDefault(se => se.Id == id);
+            return db.Seasons.Include(se => se.Bookings).Include(se => se.Hotel).FirstOrDefault(se => se.Id == id);
         }
         //add
         public void Add(Season s)
@@ -50,6 +50,23 @@ namespace HotelBookingApi.Repository
         {
             db.SaveChanges();
         }
+
+
+        //Paged
+        public List<Season> GetPaged(int pageNumber, int pageSize)
+        {
+            return db.Seasons
+                .OrderBy(s => s.Id)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+        }
+
+        public int GetTotalCount()
+        {
+            return db.Seasons.Count();
+        }
+
 
     }
 }

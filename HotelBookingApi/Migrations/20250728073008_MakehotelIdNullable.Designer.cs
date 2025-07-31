@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBookingApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250727205750_AddHotelMigration")]
-    partial class AddHotelMigration
+    [Migration("20250728073008_MakehotelIdNullable")]
+    partial class MakehotelIdNullable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -45,7 +45,8 @@ namespace HotelBookingApi.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("PriceFactor")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -129,7 +130,8 @@ namespace HotelBookingApi.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("TotalPrice")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
 
                     b.HasKey("Id");
 
@@ -207,7 +209,8 @@ namespace HotelBookingApi.Migrations
                         .HasColumnType("bit");
 
                     b.Property<decimal>("PricePerNight")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<int>("RoomNumber")
                         .HasColumnType("int");
@@ -229,9 +232,11 @@ namespace HotelBookingApi.Migrations
 
             modelBuilder.Entity("HotelBooking.Domain.Models.Season", b =>
                 {
-                    b.HasOne("HotelBookingApi.Models.Hotel", null)
+                    b.HasOne("HotelBookingApi.Models.Hotel", "Hotel")
                         .WithMany("Seasons")
                         .HasForeignKey("HotelId");
+
+                    b.Navigation("Hotel");
                 });
 
             modelBuilder.Entity("HotelBookingApi.Models.Booking", b =>
