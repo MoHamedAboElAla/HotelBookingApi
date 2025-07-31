@@ -14,8 +14,11 @@ namespace HotelBookingApi.MappingConfig
         public MappConfig()
         {
             CreateMap<Season, DisplaySeasonDTO>().AfterMap(
-                (src, dest) => dest.BookingIds = src.Bookings.Select(b => b.Id).ToList()
-                );
+                (src, dest) => {
+                    dest.BookingIds = src.Bookings.Select(b => b.Id).ToList();
+                    dest.HotelName = src.Hotel?.Name ?? "Unknown Hotel";
+
+                });
 
             CreateMap<AddSeasonDTO, Season>();
 
