@@ -16,5 +16,9 @@ namespace HotelBookingApi.IRepository
         public void delete(Season s);
         //save
         public void save();
+
+        List<Season> GetPaged(int pageNumber, int pageSize);
+        int GetTotalCount();
+
     }
 }

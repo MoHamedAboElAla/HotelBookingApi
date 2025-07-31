@@ -44,5 +44,22 @@ namespace HotelBookingApi.Repository
             db.SaveChanges();
         }
 
+
+        //Paged
+        public List<Season> GetPaged(int pageNumber, int pageSize)
+        {
+            return db.Seasons
+                .OrderBy(s => s.Id)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+        }
+
+        public int GetTotalCount()
+        {
+            return db.Seasons.Count();
+        }
+
+
     }
 }
