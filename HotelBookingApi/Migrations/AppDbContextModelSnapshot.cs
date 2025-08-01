@@ -22,39 +22,6 @@ namespace HotelBookingApi.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("HotelBooking.Domain.Models.Season", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("HotelId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<decimal>("PriceFactor")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("HotelId");
-
-                    b.ToTable("Seasons");
-                });
-
             modelBuilder.Entity("HotelBookingApi.Models.Agent", b =>
                 {
                     b.Property<int>("Id")
@@ -143,6 +110,29 @@ namespace HotelBookingApi.Migrations
                     b.ToTable("Bookings");
                 });
 
+            modelBuilder.Entity("HotelBookingApi.Models.CartItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AgentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentId");
+
+                    b.HasIndex("BookingId");
+
+                    b.ToTable("CartItems");
+                });
+
             modelBuilder.Entity("HotelBookingApi.Models.Hotel", b =>
                 {
                     b.Property<int>("Id")
@@ -227,13 +217,32 @@ namespace HotelBookingApi.Migrations
                     b.ToTable("Rooms");
                 });
 
-            modelBuilder.Entity("HotelBooking.Domain.Models.Season", b =>
+            modelBuilder.Entity("HotelBookingApi.Models.Season", b =>
                 {
-                    b.HasOne("HotelBookingApi.Models.Hotel", "Hotel")
-                        .WithMany("Seasons")
-                        .HasForeignKey("HotelId");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                    b.Navigation("Hotel");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("PriceFactor")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Seasons");
                 });
 
             modelBuilder.Entity("HotelBookingApi.Models.Booking", b =>
@@ -250,7 +259,7 @@ namespace HotelBookingApi.Migrations
                         .WithMany("Bookings")
                         .HasForeignKey("RoomId");
 
-                    b.HasOne("HotelBooking.Domain.Models.Season", null)
+                    b.HasOne("HotelBookingApi.Models.Season", null)
                         .WithMany("Bookings")
                         .HasForeignKey("SeasonId");
 
@@ -259,6 +268,25 @@ namespace HotelBookingApi.Migrations
                     b.Navigation("Hotel");
 
                     b.Navigation("Room");
+                });
+
+            modelBuilder.Entity("HotelBookingApi.Models.CartItem", b =>
+                {
+                    b.HasOne("HotelBookingApi.Models.Agent", "Agent")
+                        .WithMany()
+                        .HasForeignKey("AgentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HotelBookingApi.Models.Booking", "Booking")
+                        .WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Agent");
+
+                    b.Navigation("Booking");
                 });
 
             modelBuilder.Entity("HotelBookingApi.Models.Room", b =>
@@ -272,11 +300,6 @@ namespace HotelBookingApi.Migrations
                     b.Navigation("Hotel");
                 });
 
-            modelBuilder.Entity("HotelBooking.Domain.Models.Season", b =>
-                {
-                    b.Navigation("Bookings");
-                });
-
             modelBuilder.Entity("HotelBookingApi.Models.Agent", b =>
                 {
                     b.Navigation("Bookings");
@@ -287,11 +310,14 @@ namespace HotelBookingApi.Migrations
                     b.Navigation("Bookings");
 
                     b.Navigation("Rooms");
-
-                    b.Navigation("Seasons");
                 });
 
             modelBuilder.Entity("HotelBookingApi.Models.Room", b =>
+                {
+                    b.Navigation("Bookings");
+                });
+
+            modelBuilder.Entity("HotelBookingApi.Models.Season", b =>
                 {
                     b.Navigation("Bookings");
                 });

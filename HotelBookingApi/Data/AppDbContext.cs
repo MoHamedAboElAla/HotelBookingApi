@@ -1,5 +1,4 @@
-﻿using HotelBooking.Domain.Models;
-using HotelBookingApi.Models;
+﻿using HotelBookingApi.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelBookingApi.Data
@@ -15,6 +14,8 @@ namespace HotelBookingApi.Data
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Agent> Agents { get; set; }
         public DbSet<Season> Seasons { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
+
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
-using HotelBooking.Domain.Models;
+using HotelBookingApi.Data;
 using HotelBookingApi.Dtos.RoomDTOS;
 using HotelBookingApi.DTOs.SeasonDTOs;
 using HotelBookingApi.IRepository;
 using HotelBookingApi.Models;
+using HotelBookingApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace HotelBookingApi.Controllers
 {
@@ -15,11 +17,15 @@ namespace HotelBookingApi.Controllers
     {
         IRoomRepo room;
         IMapper map;
-        public RoomsController(IRoomRepo _room, IMapper _map)
+
+        private readonly IImageUrlService _imageUrlService;
+        public RoomsController(IRoomRepo _room, IMapper _map, IImageUrlService imageUrlService)
         {
             room = _room;
             map = _map;
+            _imageUrlService = imageUrlService;
         }
+        /*
         [HttpGet]
         public IActionResult GetAll()
         {
@@ -29,20 +35,62 @@ namespace HotelBookingApi.Controllers
             return Ok(map.Map<List<displayRoom>>((Rooms)));
 
         }
+        */
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            List<Room> rooms = room.GetAll();
+            if (rooms == null)
+                return BadRequest("No data");
+
+            var dtoList = map.Map<List<displayRoom>>(rooms);
+
+            foreach (var roomDto in dtoList)
+            {
+                roomDto.ImageUrl = _imageUrlService.GenerateRoomImageUrl(
+                    Path.GetFileName(roomDto.ImageUrl)
+                );
+            }
+
+            return Ok(dtoList);
+        }
+        /*
         [HttpGet("{id}")]
         public IActionResult GetbyId(int id)
         {
             Room r = room.GetbyId(id);
 
             if (r== null) return NotFound("No Room Matched");
-            
+
                 displayRoom RoomDto = map.Map<displayRoom>(r);
                 return Ok(RoomDto);
-            
+
         }
+        */
+
+        [HttpGet("{id}")]
+        public IActionResult GetbyId(int id)
+        {
+            Room r = room.GetbyId(id);
+            if (r == null) return NotFound("No Room Matched");
+
+            displayRoom roomDto = map.Map<displayRoom>(r);
+
+            roomDto.ImageUrl = _imageUrlService.GenerateRoomImageUrl(
+                Path.GetFileName(roomDto.ImageUrl)
+            );
+
+            return Ok(roomDto);
+        }
+
         [HttpPost]
         public IActionResult Add([FromForm] AddRoom RDTO)
         {
+            if (RDTO.HotelId == 0)
+            {
+                ModelState.AddModelError("HotelId", "You must select a hotel.");
+                return BadRequest(ModelState);
+            }
             if (RDTO == null) return BadRequest();
 
             if (ModelState.IsValid)
@@ -52,7 +100,7 @@ namespace HotelBookingApi.Controllers
                 if (RDTO.Image != null && RDTO.Image.Length > 0)
                 {
                     string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-                    Directory.CreateDirectory(uploadsFolder); 
+                    Directory.CreateDirectory(uploadsFolder);
 
                     string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(RDTO.Image.FileName);
                     string filePath = Path.Combine(uploadsFolder, uniqueFileName);
@@ -62,18 +110,30 @@ namespace HotelBookingApi.Controllers
                         RDTO.Image.CopyTo(stream);
                     }
 
-                    r.ImageUrl = "/uploads/" + uniqueFileName; 
+                    //r.ImageUrl = "/uploads/" + uniqueFileName;
+                    r.ImageUrl = $"{Request.Scheme}://{Request.Host}/uploads/{uniqueFileName}";
+
                 }
 
-                room.Add(r);
-                room.Save();
+                try
+                {
+                    room.Add(r);
+                    room.Save();
 
-                return CreatedAtAction("GetById", new { id = r.Id }, r);
+                    return CreatedAtAction("GetById", new { id = r.Id }, r);
+                }
+                catch (DbUpdateException ex)
+                {
+                    return BadRequest(new
+                    {
+                        errors = new { Duplicate = new[] { "Room number and hotel are already Inserted before they must be unique. Please change them." } }
+                    });
+                }
             }
+
 
             return BadRequest(ModelState);
         }
-
         [HttpPut("{id}")]
         public IActionResult UpdateRoom(int id, [FromForm] UpdateRoomDto dto)
         {
@@ -99,14 +159,32 @@ namespace HotelBookingApi.Controllers
                     dto.Image.CopyTo(stream);
                 }
 
-                existingRoom.ImageUrl = "/uploads/" + uniqueFileName;
+                existingRoom.ImageUrl = $"{Request.Scheme}://{Request.Host}/uploads/{uniqueFileName}";
             }
 
-            room.Update(existingRoom);
-            room.Save();
+            try
+            {
+                room.Update(existingRoom);
+                room.Save();
+                return NoContent();
+            }
+            catch (DbUpdateException ex)
+            {
+                if (ex.InnerException?.Message.Contains("IX_Rooms_RoomNumber_HotelId") == true ||
+                    ex.InnerException?.Message.Contains("duplicate") == true ||
+                    ex.InnerException?.Message.Contains("UNIQUE") == true)
+                {
+                    return BadRequest(new { error = "This room number is already used for the selected hotel." });
+                }
 
-            return NoContent();
+                return StatusCode(500, "An unexpected database error occurred.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "An unexpected error occurred while updating the room.");
+            }
         }
+
 
 
         [HttpDelete("{id}")]
@@ -130,6 +208,34 @@ namespace HotelBookingApi.Controllers
                 return NotFound("No available rooms found for the given date range.");
             return Ok(availableRooms);
         }
+        /*  [HttpGet("hotel/{hotelId}")]
+          public async Task<ActionResult<IEnumerable<displayRoom>>> GetRoomsByHotel(int hotelId)
+          {
+              {
+                  var rooms = await _context.Rooms.Include(r => r.Hotel)
+                        .Where(r => r.HotelId == hotelId)
+                        .Select(r => new displayRoom
+                        {
+                            Id = r.Id,
+                            RoomNumber = r.RoomNumber,
+                            RoomType = r.RoomType,
+                            Description = r.Description!,
+                            PricePerNight = r.PricePerNight,
+                            IsAvailable = r.IsAvailable,
+                            ImageUrl = r.ImageUrl,
+                            HotelName = r.Hotel!.Name!
+                        })
+                        .ToListAsync();
+
+                  if (rooms == null || !rooms.Any())
+                  {
+                      return NotFound("No rooms found for the specified hotel.");
+                  }
+
+                  return Ok(rooms);
+              }
+          }
+*/
 
     }
 }

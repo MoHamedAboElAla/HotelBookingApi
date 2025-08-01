@@ -1,5 +1,4 @@
-﻿using HotelBooking.Domain.Models;
-using HotelBookingApi.Data;
+﻿using HotelBookingApi.Data;
 using HotelBookingApi.IRepository;
 using HotelBookingApi.Models;
 using Microsoft.EntityFrameworkCore;
@@ -18,11 +17,11 @@ namespace HotelBookingApi.Repository
         public List<Room> GetAll()
         {
             return db.Rooms.Include(se => se.Bookings).Include(se => se.Hotel).ToList();
-
         }
         public Room GetbyId(int id)
         {
             return db.Rooms.Include(se => se.Bookings).Include(se => se.Hotel).FirstOrDefault(se => se.Id == id);
+
         }
 
         public void Add(Room r)
