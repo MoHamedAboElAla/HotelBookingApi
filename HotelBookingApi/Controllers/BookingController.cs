@@ -6,6 +6,7 @@ using HotelBookingApi.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace HotelBookingApi.Controllers
@@ -94,9 +95,10 @@ namespace HotelBookingApi.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
-       
+     
 
-    
+
+
 
     }
 }

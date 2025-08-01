@@ -47,6 +47,8 @@ namespace HotelBookingApi
             builder.Services.AddScoped<ISeasonRepo, SeasonRepo>();
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<IImageUrlService, ImageUrlService>();
+            builder.Services.AddHostedService<RoomAvailabilityService>();
+
 
             builder.Services.AddScoped<IRoomRepo, RoomRepo>();
             builder.Services.AddScoped<IBookingRepo, BookingRepo>();

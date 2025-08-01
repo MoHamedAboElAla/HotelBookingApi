@@ -136,7 +136,7 @@ namespace HotelBookingApi.Controllers
         }
 
 
-        ////////////////////////////////////
+        
         [Authorize]
         [HttpGet("Profile")]
         public IActionResult GetProfile()
@@ -244,4 +244,3 @@ namespace HotelBookingApi.Controllers
         }
     }
 }
-/////////////////////////////
