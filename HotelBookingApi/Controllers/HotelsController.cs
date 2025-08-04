@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using HotelBookingApi.Data;
 using HotelBookingApi.Dtos;
 using HotelBookingApi.IRepository;
 using HotelBookingApi.Models;
@@ -20,14 +21,68 @@ namespace HotelBookingApi.Controllers
         private readonly IWebHostEnvironment _env;
         private readonly IMapper _mapper;
         private readonly IImageUrlService _imageUrlService;
+        private readonly AppDbContext _context;
 
-        public HotelsController(IHotelRepository repo, IWebHostEnvironment env, IMapper mapper, IImageUrlService imageUrlService)
+        public HotelsController(IHotelRepository repo, IWebHostEnvironment env, IMapper mapper, IImageUrlService imageUrlService, AppDbContext context)
         {
             _repo = repo;
             _env = env;
             _mapper = mapper;
             _imageUrlService = imageUrlService;
+            _context = context;
         }
+        [HttpPut("lock-unlock/{id}")]
+        public async Task<IActionResult> ToggleHotelLock(int id)
+        {
+            var hotel = await _repo.GetByIdAsync(id);
+            if (hotel == null)
+                return NotFound();
+
+            hotel.IsLocked = !hotel.IsLocked;
+            await _repo.SaveAsync();
+
+            return Ok(new { hotel.Id, hotel.IsLocked });
+        }
+
+
+
+
+        [HttpGet("public")]
+        public async Task<IActionResult> GetAvailableHotels()
+        {
+            var hotels = await _repo.GetAllAsync();
+
+           
+            var unlockedHotels = hotels.Where(h => !h.IsLocked).ToList();
+
+            if (!unlockedHotels.Any())
+                return NotFound("No Available Hotels Found");
+
+            var result = _mapper.Map<List<HotelViewDto>>(unlockedHotels);
+
+            for (int i = 0; i < result.Count; i++)
+            {
+                result[i].ImageUrl = _imageUrlService.GenerateHotelImageUrl(unlockedHotels[i].ImageFileName!);
+
+                if (result[i].Rooms != null)
+                {
+                    for (int j = 0; j < result[i].Rooms!.Count; j++)
+                    {
+                        var roomImageFileName = unlockedHotels[i].Rooms.ElementAtOrDefault(j)?.ImageUrl;
+                        result[i].Rooms![j].ImageUrl = _imageUrlService.GenerateRoomImageUrl(roomImageFileName!);
+                    }
+                }
+            }
+
+            return Ok(result);
+        }
+        [HttpGet("count")]
+        public async Task<IActionResult> GetHotelsCount()
+        {
+            var count = await _context.Hotels.CountAsync();
+            return Ok(count);
+        }
+
 
         [HttpGet]
         public async Task<IActionResult> GetAllHotels()
@@ -46,10 +101,10 @@ namespace HotelBookingApi.Controllers
 
                 if (result[i].Rooms != null)
                 {
-                    for (int j = 0; j < result[i].Rooms.Count; j++)
+                    for (int j = 0; j < result[i].Rooms!.Count; j++)
                     {
                         var roomImageFileName = hotels[i].Rooms.ElementAtOrDefault(j)?.ImageUrl;
-                        result[i].Rooms[j].ImageUrl = _imageUrlService.GenerateRoomImageUrl(roomImageFileName!);
+                        result[i].Rooms![j].ImageUrl = _imageUrlService.GenerateRoomImageUrl(roomImageFileName!);
                     }
                 }
             }
