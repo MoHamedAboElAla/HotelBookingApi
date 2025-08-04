@@ -4,6 +4,7 @@ using HotelBookingApi.Dtos.RoomDTOS;
 using HotelBookingApi.DTOs.SeasonDTOs;
 using HotelBookingApi.IRepository;
 using HotelBookingApi.Models;
+using HotelBookingApi.Repository;
 using HotelBookingApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,13 +18,15 @@ namespace HotelBookingApi.Controllers
     {
         IRoomRepo room;
         IMapper map;
+        private readonly AppDbContext _context;
 
         private readonly IImageUrlService _imageUrlService;
-        public RoomsController(IRoomRepo _room, IMapper _map, IImageUrlService imageUrlService)
+        public RoomsController(IRoomRepo _room, IMapper _map, IImageUrlService imageUrlService, AppDbContext context)
         {
             room = _room;
             map = _map;
             _imageUrlService = imageUrlService;
+            _context = context;
         }
         /*
         [HttpGet]
@@ -54,6 +57,9 @@ namespace HotelBookingApi.Controllers
 
             return Ok(dtoList);
         }
+        [HttpGet("count")]
+        public async Task<IActionResult> GetRoomsCount() => Ok(await _context.Rooms.CountAsync());
+
         /*
         [HttpGet("{id}")]
         public IActionResult GetbyId(int id)
@@ -198,12 +204,12 @@ namespace HotelBookingApi.Controllers
             return Ok(roomDTO);
         }
         [HttpGet("available")]
-        public ActionResult<IEnumerable<Room>> GetAvailableRooms([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        public ActionResult<IEnumerable<Room>> GetAvailableRooms([FromQuery] DateTime startDate, [FromQuery] DateTime endDate, [FromQuery] int hotelId)
         {
             if (startDate >= endDate)
                 return BadRequest("Start date must be before end date.");
 
-            var availableRooms = room.GetAvailableRooms(startDate, endDate);
+            var availableRooms = room.GetAvailableRoomsUsingDate(startDate, endDate, hotelId);
             if (availableRooms == null)
                 return NotFound("No available rooms found for the given date range.");
             return Ok(availableRooms);
