@@ -155,6 +155,9 @@ namespace HotelBookingApi.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsLocked")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasMaxLength(300)

@@ -20,6 +20,7 @@ namespace HotelBookingApi.Models
         public string? Description { get; set; }
         [Required, Range(1, 5, ErrorMessage = "Stars must be between 1 and 5.")]
         public byte Stars { get; set; }
+        public bool IsLocked { get; set; }
         public ICollection<Room> Rooms { get; set; } = new HashSet<Room>();
 
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
