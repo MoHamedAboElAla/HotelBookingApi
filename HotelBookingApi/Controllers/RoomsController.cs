@@ -17,12 +17,13 @@ namespace HotelBookingApi.Controllers
     {
         IRoomRepo room;
         IMapper map;
-
+        private readonly IWebHostEnvironment _env;
         private readonly IImageUrlService _imageUrlService;
-        public RoomsController(IRoomRepo _room, IMapper _map, IImageUrlService imageUrlService)
+        public RoomsController(IRoomRepo _room, IMapper _map, IWebHostEnvironment env, IImageUrlService imageUrlService)
         {
             room = _room;
             map = _map;
+            _env = env;
             _imageUrlService = imageUrlService;
         }
         /*
@@ -36,6 +37,7 @@ namespace HotelBookingApi.Controllers
 
         }
         */
+        /*
         [HttpGet]
         public IActionResult GetAll()
         {
@@ -54,6 +56,7 @@ namespace HotelBookingApi.Controllers
 
             return Ok(dtoList);
         }
+        */
         /*
         [HttpGet("{id}")]
         public IActionResult GetbyId(int id)
@@ -67,7 +70,42 @@ namespace HotelBookingApi.Controllers
 
         }
         */
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            List<Room> rooms = room.GetAll();
+            if (rooms == null)
+                return BadRequest("No data");
 
+            var dtoList = map.Map<List<displayRoom>>(rooms);
+
+            foreach (var roomDto in dtoList)
+            {
+                roomDto.ImageUrl = _imageUrlService.GenerateRoomImageUrl(roomDto.ImageUrl!);
+            }
+
+            return Ok(dtoList);
+        }
+        [HttpGet("{id}")]
+        public IActionResult GetbyId(int id)
+        {
+            Room r = room.GetbyId(id);
+            if (r == null)
+                return NotFound("No Room Matched");
+
+            displayRoom roomDto = map.Map<displayRoom>(r);
+
+            if (!string.IsNullOrEmpty(roomDto.ImageUrl))
+            {
+                roomDto.ImageUrl = _imageUrlService.GenerateRoomImageUrl(
+                    Path.GetFileName(roomDto.ImageUrl)
+                );
+            }
+
+            return Ok(roomDto);
+        }
+
+        /*
         [HttpGet("{id}")]
         public IActionResult GetbyId(int id)
         {
@@ -82,7 +120,7 @@ namespace HotelBookingApi.Controllers
 
             return Ok(roomDto);
         }
-
+        */
         [HttpPost]
         public IActionResult Add([FromForm] AddRoom RDTO)
         {
@@ -99,7 +137,8 @@ namespace HotelBookingApi.Controllers
 
                 if (RDTO.Image != null && RDTO.Image.Length > 0)
                 {
-                    string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                    // string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                    string uploadsFolder = Path.Combine(_env.WebRootPath, "images", "rooms");
                     Directory.CreateDirectory(uploadsFolder);
 
                     string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(RDTO.Image.FileName);
@@ -111,8 +150,8 @@ namespace HotelBookingApi.Controllers
                     }
 
                     //r.ImageUrl = "/uploads/" + uniqueFileName;
-                    r.ImageUrl = $"{Request.Scheme}://{Request.Host}/uploads/{uniqueFileName}";
-
+                    // r.ImageUrl = $"{Request.Scheme}://{Request.Host}/uploads/{uniqueFileName}";
+                    r.ImageUrl = uniqueFileName;
                 }
 
                 try
@@ -148,7 +187,8 @@ namespace HotelBookingApi.Controllers
 
             if (dto.Image != null && dto.Image.Length > 0)
             {
-                string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                // string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                string uploadsFolder = Path.Combine(_env.WebRootPath, "images", "rooms");
                 Directory.CreateDirectory(uploadsFolder);
 
                 string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.Image.FileName);
@@ -159,7 +199,8 @@ namespace HotelBookingApi.Controllers
                     dto.Image.CopyTo(stream);
                 }
 
-                existingRoom.ImageUrl = $"{Request.Scheme}://{Request.Host}/uploads/{uniqueFileName}";
+                //existingRoom.ImageUrl = $"{Request.Scheme}://{Request.Host}/uploads/{uniqueFileName}";
+                existingRoom.ImageUrl = uniqueFileName;
             }
 
             try

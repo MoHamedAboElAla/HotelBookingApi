@@ -26,7 +26,8 @@
 
         public string GenerateRoomImageUrl(string fileName)
         {
-            return GenerateImageUrl("uploads", fileName);
+            // return GenerateImageUrl("uploads", fileName);
+            return GenerateImageUrl("images/rooms", fileName);
         }
 
     }
