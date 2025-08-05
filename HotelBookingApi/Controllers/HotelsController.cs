@@ -180,9 +180,22 @@ namespace HotelBookingApi.Controllers
 
             await _repo.EditAsync(hotel);
             await _repo.SaveAsync();
+            //////////////////////////
 
-            return Ok(hotel); 
+            return Ok(new
+            {
+                hotel.Id,
+                hotel.Name,
+                hotel.Location,
+                hotel.Country,
+                hotel.ImageFileName,
+                hotel.Description,
+                hotel.Stars
+            });
+
+            //////////////////////////
         }
+
 
 
         [HttpDelete("{id}")]
