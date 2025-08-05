@@ -28,17 +28,7 @@ namespace HotelBookingApi.Controllers
             _imageUrlService = imageUrlService;
             _context = context;
         }
-        /*
-        [HttpGet]
-        public IActionResult GetAll()
-        {
-           List<Room>Rooms= room.GetAll();
-            if (Rooms == null)
-                return BadRequest("No data ");
-            return Ok(map.Map<List<displayRoom>>((Rooms)));
 
-        }
-        */
         [HttpGet]
         public IActionResult GetAll()
         {
@@ -60,19 +50,6 @@ namespace HotelBookingApi.Controllers
         [HttpGet("count")]
         public async Task<IActionResult> GetRoomsCount() => Ok(await _context.Rooms.CountAsync());
 
-        /*
-        [HttpGet("{id}")]
-        public IActionResult GetbyId(int id)
-        {
-            Room r = room.GetbyId(id);
-
-            if (r== null) return NotFound("No Room Matched");
-
-                displayRoom RoomDto = map.Map<displayRoom>(r);
-                return Ok(RoomDto);
-
-        }
-        */
 
         [HttpGet("{id}")]
         public IActionResult GetbyId(int id)
@@ -140,6 +117,88 @@ namespace HotelBookingApi.Controllers
 
             return BadRequest(ModelState);
         }
+
+
+
+
+
+
+        //Add Multiple Rooms
+        [HttpPost("bulk")]
+        public IActionResult AddMultipleRooms([FromForm] AddMultipleRoomsDto dto)
+        {
+            if (dto.HotelId == 0 || dto.Count <= 0)
+                return BadRequest("HotelId and Count are required.");
+
+            var intendedRoomNumbers = Enumerable.Range(dto.StartRoomNumber, dto.Count).ToList();
+
+            // Step 1: Check for duplicates in DB
+            var existingRoomNumbers = room
+                .GetRoomNumbersForHotel(dto.HotelId)
+                .Where(rn => intendedRoomNumbers.Contains(rn))
+                .ToList();
+
+            if (existingRoomNumbers.Any())
+            {
+                return Conflict(new
+                {
+                    message = "Some room numbers already exist for this hotel.",
+                    duplicatedNumbers = existingRoomNumbers
+                });
+            }
+
+            // Step 2: Proceed with creation
+            List<Room> roomsToAdd = new();
+            for (int i = 0; i < dto.Count; i++)
+            {
+                var roomNumber = dto.StartRoomNumber + i;
+
+                var room = new Room
+                {
+                    RoomNumber = roomNumber,
+                    RoomType = dto.RoomType,
+                    Description = dto.Description,
+                    PricePerNight = dto.PricePerNight,
+                    IsAvailable = dto.IsAvailable,
+                    HotelId = dto.HotelId
+                };
+
+                if (dto.Image != null && dto.Image.Length > 0)
+                {
+                    string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                    Directory.CreateDirectory(uploadsFolder);
+
+                    string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.Image.FileName);
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        dto.Image.CopyTo(stream);
+                    }
+
+                    room.ImageUrl = $"{Request.Scheme}://{Request.Host}/uploads/{uniqueFileName}";
+                }
+
+                roomsToAdd.Add(room);
+            }
+
+            try
+            {
+                room.AddRange(roomsToAdd);
+                room.Save();
+                return Ok(new { message = $"{dto.Count} rooms added successfully." });
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, "Unexpected DB error occurred.");
+            }
+        }
+
+
+
+
+
+
         [HttpPut("{id}")]
         public IActionResult UpdateRoom(int id, [FromForm] UpdateRoomDto dto)
         {
@@ -198,6 +257,9 @@ namespace HotelBookingApi.Controllers
         {
             Room r = room.GetbyId(id);
             if (r == null) return NotFound();
+            if (!r.IsAvailable)
+                return BadRequest("Cannot delete a room that is already booked.");
+
             displayRoom roomDTO = map.Map<displayRoom>(r);
             room.Delete(r);
             room.Save();
@@ -214,34 +276,7 @@ namespace HotelBookingApi.Controllers
                 return NotFound("No available rooms found for the given date range.");
             return Ok(availableRooms);
         }
-        /*  [HttpGet("hotel/{hotelId}")]
-          public async Task<ActionResult<IEnumerable<displayRoom>>> GetRoomsByHotel(int hotelId)
-          {
-              {
-                  var rooms = await _context.Rooms.Include(r => r.Hotel)
-                        .Where(r => r.HotelId == hotelId)
-                        .Select(r => new displayRoom
-                        {
-                            Id = r.Id,
-                            RoomNumber = r.RoomNumber,
-                            RoomType = r.RoomType,
-                            Description = r.Description!,
-                            PricePerNight = r.PricePerNight,
-                            IsAvailable = r.IsAvailable,
-                            ImageUrl = r.ImageUrl,
-                            HotelName = r.Hotel!.Name!
-                        })
-                        .ToListAsync();
 
-                  if (rooms == null || !rooms.Any())
-                  {
-                      return NotFound("No rooms found for the specified hotel.");
-                  }
-
-                  return Ok(rooms);
-              }
-          }
-*/
 
     }
 }

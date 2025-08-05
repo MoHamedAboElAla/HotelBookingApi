@@ -59,6 +59,19 @@ namespace HotelBookingApi.Repository
         }
 
 
+        public void AddRange(IEnumerable<Room> rooms)
+        {
+            db.Rooms.AddRange(rooms);
+        }
+
+        public List<int> GetRoomNumbersForHotel(int hotelId)
+        {
+            return db.Rooms
+                .Where(r => r.HotelId == hotelId)
+                .Select(r => r.RoomNumber)
+                .ToList();
+        }
+
 
     }
 }
