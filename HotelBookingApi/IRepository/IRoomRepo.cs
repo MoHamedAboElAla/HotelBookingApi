@@ -12,9 +12,10 @@ namespace HotelBookingApi.IRepository
         public void Delete(Room r);
        
         public void Save();
-       public  IEnumerable<Room> GetAvailableRooms(DateTime startDate, DateTime endDate);
+       public  IEnumerable<Room> GetAvailableRoomsUsingDate(DateTime startDate, DateTime endDate, int hotelId);
 
-
+        List<int> GetRoomNumbersForHotel(int hotelId);
+        void AddRange(IEnumerable<Room> rooms);
 
 
 

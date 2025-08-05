@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBookingApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250727195246_AddCartDb")]
-    partial class AddCartDb
+    [Migration("20250805044923_insertislockedColumn")]
+    partial class insertislockedColumn
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -96,8 +96,9 @@ namespace HotelBookingApi.Migrations
                     b.Property<int?>("SeasonId")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("TotalPrice")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<decimal>("TotalPrice")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
 
                     b.HasKey("Id");
 
@@ -157,6 +158,9 @@ namespace HotelBookingApi.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsLocked")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasMaxLength(300)
@@ -198,7 +202,8 @@ namespace HotelBookingApi.Migrations
                         .HasColumnType("bit");
 
                     b.Property<decimal>("PricePerNight")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<int>("RoomNumber")
                         .HasColumnType("int");
@@ -229,23 +234,19 @@ namespace HotelBookingApi.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("HotelId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("PriceFactor")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("HotelId");
 
                     b.ToTable("Seasons");
                 });
@@ -305,13 +306,6 @@ namespace HotelBookingApi.Migrations
                     b.Navigation("Hotel");
                 });
 
-            modelBuilder.Entity("HotelBookingApi.Models.Season", b =>
-                {
-                    b.HasOne("HotelBookingApi.Models.Hotel", null)
-                        .WithMany("Seasons")
-                        .HasForeignKey("HotelId");
-                });
-
             modelBuilder.Entity("HotelBookingApi.Models.Agent", b =>
                 {
                     b.Navigation("Bookings");
@@ -322,8 +316,6 @@ namespace HotelBookingApi.Migrations
                     b.Navigation("Bookings");
 
                     b.Navigation("Rooms");
-
-                    b.Navigation("Seasons");
                 });
 
             modelBuilder.Entity("HotelBookingApi.Models.Room", b =>
