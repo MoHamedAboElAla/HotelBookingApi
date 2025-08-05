@@ -257,6 +257,9 @@ namespace HotelBookingApi.Controllers
         {
             Room r = room.GetbyId(id);
             if (r == null) return NotFound();
+            if (!r.IsAvailable)
+                return BadRequest("Cannot delete a room that is already booked.");
+
             displayRoom roomDTO = map.Map<displayRoom>(r);
             room.Delete(r);
             room.Save();
