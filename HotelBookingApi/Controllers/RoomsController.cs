@@ -26,50 +26,7 @@ namespace HotelBookingApi.Controllers
             _env = env;
             _imageUrlService = imageUrlService;
         }
-        /*
-        [HttpGet]
-        public IActionResult GetAll()
-        {
-           List<Room>Rooms= room.GetAll();
-            if (Rooms == null)
-                return BadRequest("No data ");
-            return Ok(map.Map<List<displayRoom>>((Rooms)));
 
-        }
-        */
-        /*
-        [HttpGet]
-        public IActionResult GetAll()
-        {
-            List<Room> rooms = room.GetAll();
-            if (rooms == null)
-                return BadRequest("No data");
-
-            var dtoList = map.Map<List<displayRoom>>(rooms);
-
-            foreach (var roomDto in dtoList)
-            {
-                roomDto.ImageUrl = _imageUrlService.GenerateRoomImageUrl(
-                    Path.GetFileName(roomDto.ImageUrl)
-                );
-            }
-
-            return Ok(dtoList);
-        }
-        */
-        /*
-        [HttpGet("{id}")]
-        public IActionResult GetbyId(int id)
-        {
-            Room r = room.GetbyId(id);
-
-            if (r== null) return NotFound("No Room Matched");
-
-                displayRoom RoomDto = map.Map<displayRoom>(r);
-                return Ok(RoomDto);
-
-        }
-        */
         [HttpGet]
         public IActionResult GetAll()
         {
@@ -105,22 +62,6 @@ namespace HotelBookingApi.Controllers
             return Ok(roomDto);
         }
 
-        /*
-        [HttpGet("{id}")]
-        public IActionResult GetbyId(int id)
-        {
-            Room r = room.GetbyId(id);
-            if (r == null) return NotFound("No Room Matched");
-
-            displayRoom roomDto = map.Map<displayRoom>(r);
-
-            roomDto.ImageUrl = _imageUrlService.GenerateRoomImageUrl(
-                Path.GetFileName(roomDto.ImageUrl)
-            );
-
-            return Ok(roomDto);
-        }
-        */
         [HttpPost]
         public IActionResult Add([FromForm] AddRoom RDTO)
         {
@@ -137,7 +78,6 @@ namespace HotelBookingApi.Controllers
 
                 if (RDTO.Image != null && RDTO.Image.Length > 0)
                 {
-                    // string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
                     string uploadsFolder = Path.Combine(_env.WebRootPath, "images", "rooms");
                     Directory.CreateDirectory(uploadsFolder);
 
@@ -149,8 +89,7 @@ namespace HotelBookingApi.Controllers
                         RDTO.Image.CopyTo(stream);
                     }
 
-                    //r.ImageUrl = "/uploads/" + uniqueFileName;
-                    // r.ImageUrl = $"{Request.Scheme}://{Request.Host}/uploads/{uniqueFileName}";
+                   
                     r.ImageUrl = uniqueFileName;
                 }
 
@@ -187,7 +126,6 @@ namespace HotelBookingApi.Controllers
 
             if (dto.Image != null && dto.Image.Length > 0)
             {
-                // string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
                 string uploadsFolder = Path.Combine(_env.WebRootPath, "images", "rooms");
                 Directory.CreateDirectory(uploadsFolder);
 
@@ -199,7 +137,6 @@ namespace HotelBookingApi.Controllers
                     dto.Image.CopyTo(stream);
                 }
 
-                //existingRoom.ImageUrl = $"{Request.Scheme}://{Request.Host}/uploads/{uniqueFileName}";
                 existingRoom.ImageUrl = uniqueFileName;
             }
 
