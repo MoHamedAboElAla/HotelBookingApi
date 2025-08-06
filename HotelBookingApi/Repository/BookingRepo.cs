@@ -199,5 +199,13 @@ namespace HotelBookingApi.Repository
 
             return _context.SaveChangesAsync();
         }
+
+
+        public async Task<int> GetBookingsCountInDateRangeAsync(DateTime startDate, DateTime endDate)
+        {
+            return await _context.Bookings
+                .CountAsync(b => b.CheckOutDate > startDate && b.CheckInDate < endDate);
+        }
+
     }
 }

@@ -15,5 +15,8 @@ namespace HotelBookingApi.IRepository
         Task<List<Booking>> GetBookingsByHotelIdAsync(int hotelId);
         Task<List<Booking>> GetBookingsByRoomIdAsync(int roomId);
         Task Save();
+
+        Task<int> GetBookingsCountInDateRangeAsync(DateTime startDate, DateTime endDate);
+
     }
 }

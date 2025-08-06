@@ -9,8 +9,6 @@ namespace HotelBookingApi.DTOs.SeasonDTOs
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public decimal PriceFactor {  get; set; }
-        public string HotelName { get; set; }
-        public List<int> BookingIds {  get; set; } = new List<int>();
-
+        public int BookingsCount { get; set; }
     }
 }
