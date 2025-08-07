@@ -4,6 +4,7 @@ using HotelBookingApi.Dtos.RoomDTOS;
 using HotelBookingApi.DTOs.SeasonDTOs;
 using HotelBookingApi.IRepository;
 using HotelBookingApi.Models;
+using HotelBookingApi.Repository;
 using HotelBookingApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,7 @@ namespace HotelBookingApi.Controllers
     [ApiController]
     public class RoomsController : ControllerBase
     {
+        
         IRoomRepo room;
         IMapper map;
         private readonly IWebHostEnvironment _env;
@@ -89,7 +91,7 @@ namespace HotelBookingApi.Controllers
                         RDTO.Image.CopyTo(stream);
                     }
 
-                   
+
                     r.ImageUrl = uniqueFileName;
                 }
 
@@ -186,34 +188,6 @@ namespace HotelBookingApi.Controllers
                 return NotFound("No available rooms found for the given date range.");
             return Ok(availableRooms);
         }
-        /*  [HttpGet("hotel/{hotelId}")]
-          public async Task<ActionResult<IEnumerable<displayRoom>>> GetRoomsByHotel(int hotelId)
-          {
-              {
-                  var rooms = await _context.Rooms.Include(r => r.Hotel)
-                        .Where(r => r.HotelId == hotelId)
-                        .Select(r => new displayRoom
-                        {
-                            Id = r.Id,
-                            RoomNumber = r.RoomNumber,
-                            RoomType = r.RoomType,
-                            Description = r.Description!,
-                            PricePerNight = r.PricePerNight,
-                            IsAvailable = r.IsAvailable,
-                            ImageUrl = r.ImageUrl,
-                            HotelName = r.Hotel!.Name!
-                        })
-                        .ToListAsync();
-
-                  if (rooms == null || !rooms.Any())
-                  {
-                      return NotFound("No rooms found for the specified hotel.");
-                  }
-
-                  return Ok(rooms);
-              }
-          }
-*/
 
     }
 }

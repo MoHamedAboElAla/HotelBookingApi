@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HotelBookingApi.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class CreateDb : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -41,11 +41,28 @@ namespace HotelBookingApi.Migrations
                     Country = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     ImageFileName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(700)", maxLength: 700, nullable: false),
-                    Stars = table.Column<byte>(type: "tinyint", nullable: false)
+                    Stars = table.Column<byte>(type: "tinyint", nullable: false),
+                    IsLocked = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Hotels", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Seasons",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    PriceFactor = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Seasons", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -67,29 +84,6 @@ namespace HotelBookingApi.Migrations
                     table.PrimaryKey("PK_Rooms", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Rooms_Hotels_HotelId",
-                        column: x => x.HotelId,
-                        principalTable: "Hotels",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Seasons",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    PriceFactor = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
-                    HotelId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Seasons", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Seasons_Hotels_HotelId",
                         column: x => x.HotelId,
                         principalTable: "Hotels",
                         principalColumn: "Id",
@@ -136,6 +130,32 @@ namespace HotelBookingApi.Migrations
                         principalColumn: "Id");
                 });
 
+            migrationBuilder.CreateTable(
+                name: "CartItems",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AgentId = table.Column<int>(type: "int", nullable: false),
+                    BookingId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CartItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CartItems_Agents_AgentId",
+                        column: x => x.AgentId,
+                        principalTable: "Agents",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CartItems_Bookings_BookingId",
+                        column: x => x.BookingId,
+                        principalTable: "Bookings",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_AgentId",
                 table: "Bookings",
@@ -157,6 +177,16 @@ namespace HotelBookingApi.Migrations
                 column: "SeasonId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CartItems_AgentId",
+                table: "CartItems",
+                column: "AgentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CartItems_BookingId",
+                table: "CartItems",
+                column: "BookingId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Rooms_HotelId",
                 table: "Rooms",
                 column: "HotelId");
@@ -166,16 +196,14 @@ namespace HotelBookingApi.Migrations
                 table: "Rooms",
                 columns: new[] { "RoomNumber", "HotelId" },
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Seasons_HotelId",
-                table: "Seasons",
-                column: "HotelId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "CartItems");
+
             migrationBuilder.DropTable(
                 name: "Bookings");
 

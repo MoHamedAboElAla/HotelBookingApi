@@ -56,6 +56,8 @@ namespace HotelBookingApi.Controllers
             }
             return Ok(booking);
         }
+        [HttpGet("count")]
+        public async Task<IActionResult> GetBookingsCount() => Ok(await _context.Bookings.CountAsync());
 
         [HttpGet]
         public IActionResult GetAllBookings()
