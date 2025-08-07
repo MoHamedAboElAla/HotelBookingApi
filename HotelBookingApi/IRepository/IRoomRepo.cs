@@ -16,7 +16,7 @@ namespace HotelBookingApi.IRepository
 
         List<int> GetRoomNumbersForHotel(int hotelId);
         void AddRange(IEnumerable<Room> rooms);
-
+        public IEnumerable<Room> GetAvailableRooms(DateTime startDate, DateTime endDate);
 
 
     }

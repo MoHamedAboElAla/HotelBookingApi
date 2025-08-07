@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBookingApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250805045633_createHotelAPIDB")]
-    partial class createHotelAPIDB
+    [Migration("20250807194941_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

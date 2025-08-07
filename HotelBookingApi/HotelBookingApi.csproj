@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\images\rooms\" />
     <Folder Include="wwwroot\room\" />
     <Folder Include="wwwroot\uploads\" />
   </ItemGroup>
