@@ -15,6 +15,8 @@ namespace HotelBookingApi.Data
         public DbSet<Agent> Agents { get; set; }
         public DbSet<Season> Seasons { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<Favorite> Favorites { get; set; }
+
 
 
 
@@ -37,8 +39,10 @@ namespace HotelBookingApi.Data
             modelBuilder.Entity<Room>()
                 .HasIndex(r => new { r.RoomNumber, r.HotelId })
                 .IsUnique();
+            modelBuilder.Entity<Favorite>()
+           .HasIndex(f => new { f.UserId, f.RoomId })
+            .IsUnique();
 
-        
         }
 
     }
