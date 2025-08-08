@@ -63,7 +63,7 @@ namespace HotelBookingApi.Controllers
                 PhoneNumber = registerDto.PhoneNumber,
                 CommercialRegister = registerDto.CommercialRegister,
                 TaxVisa = registerDto.TaxVisa,
-                Role = "Agent",
+                Role = "Admin",
             };
 
             agent.Password = encryptedPassword;

@@ -133,6 +133,7 @@ namespace HotelBookingApi.Migrations
                     b.ToTable("CartItems");
                 });
 
+
             modelBuilder.Entity("HotelBookingApi.Models.Favorite", b =>
                 {
                     b.Property<int>("Id")
