@@ -56,18 +56,7 @@ namespace HotelBookingApi.Controllers
         [HttpGet("{id}")]
         public IActionResult GetbyId(int id)
         {
-            /*
-            Room r = room.GetbyId(id);
-            if (r == null) return NotFound("No Room Matched");
-
-            displayRoom roomDto = map.Map<displayRoom>(r);
-
-            roomDto.ImageUrl = _imageUrlService.GenerateRoomImageUrl(
-                Path.GetFileName(roomDto.ImageUrl)
-            );
-
-            return Ok(roomDto);
-            */
+           
             Room r = room.GetbyId(id);
             if (r == null)
                 return NotFound("No Room Matched");
@@ -85,61 +74,6 @@ namespace HotelBookingApi.Controllers
 
             return Ok(roomDto);
         }
-        /*
-        [HttpPost]
-        public IActionResult Add([FromForm] AddRoom RDTO)
-        {
-            if (RDTO.HotelId == 0)
-            {
-                ModelState.AddModelError("HotelId", "You must select a hotel.");
-                return BadRequest(ModelState);
-            }
-            if (RDTO == null) return BadRequest();
-
-            if (ModelState.IsValid)
-            {
-                Room r = map.Map<Room>(RDTO);
-
-                if (RDTO.Image != null && RDTO.Image.Length > 0)
-                {
-                    string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-                    Directory.CreateDirectory(uploadsFolder);
-
-                    string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(RDTO.Image.FileName);
-                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        RDTO.Image.CopyTo(stream);
-                    }
-
-                    //r.ImageUrl = "/uploads/" + uniqueFileName;
-                    r.ImageUrl = $"{Request.Scheme}://{Request.Host}/uploads/{uniqueFileName}";
-
-                }
-
-                try
-                {
-                    room.Add(r);
-                    room.Save();
-
-                    return CreatedAtAction("GetById", new { id = r.Id }, r);
-                }
-                catch (DbUpdateException ex)
-                {
-                    return BadRequest(new
-                    {
-                        errors = new { Duplicate = new[] { "Room number and hotel are already Inserted before they must be unique. Please change them." } }
-                    });
-                }
-            }
-
-
-            return BadRequest(ModelState);
-        }
-
-        */
-
 
         [HttpPost]
         public IActionResult Add([FromForm] AddRoom RDTO)
