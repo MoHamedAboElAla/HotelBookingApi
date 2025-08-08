@@ -54,6 +54,7 @@ namespace HotelBookingApi
 
             builder.Services.AddScoped<IRoomRepo, RoomRepo>();
             builder.Services.AddScoped<IBookingRepo, BookingRepo>();
+            builder.Services.AddScoped<IFavoriteRepo, FavoriteRepo>();
 
             builder.Services.AddAuthentication(options =>
             {
