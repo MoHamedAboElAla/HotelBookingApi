@@ -166,21 +166,20 @@ namespace HotelBookingApi.Controllers
                     IsAvailable = dto.IsAvailable,
                     HotelId = dto.HotelId
                 };
-
                 if (dto.Image != null && dto.Image.Length > 0)
-                {
-                    string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-                    Directory.CreateDirectory(uploadsFolder);
 
+                {
+                    string uploadsFolder = Path.Combine(_env.WebRootPath, "images", "rooms");
+                    Directory.CreateDirectory(uploadsFolder);
                     string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.Image.FileName);
                     string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
                         dto.Image.CopyTo(stream);
                     }
 
-                    room.ImageUrl = $"{Request.Scheme}://{Request.Host}/uploads/{uniqueFileName}";
+                    room.ImageUrl = uniqueFileName;
+
                 }
 
                 roomsToAdd.Add(room);
