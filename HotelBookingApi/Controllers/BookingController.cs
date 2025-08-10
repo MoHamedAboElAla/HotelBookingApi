@@ -28,7 +28,15 @@ namespace HotelBookingApi.Controllers
             _context = context;
         }
 
-        [HttpPost("Book")]
+
+
+        [HttpGet("total")]
+        public IActionResult GetTotalRevenue()
+        {
+            var totalRevenue = _context.Bookings.Sum(b => b.TotalPrice);
+            return Ok(new { TotalRevenue = totalRevenue });
+        }
+            [HttpPost("Book")]
         [Authorize]
         public async Task<IActionResult> CreateBooking([FromBody] CreateBookingDto bookingDto)
         {

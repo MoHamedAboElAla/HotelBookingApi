@@ -1,5 +1,6 @@
 ﻿using HotelBookingApi.Data;
 using HotelBookingApi.Dtos;
+using HotelBookingApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,9 +14,11 @@ namespace HotelBookingApi.Controllers
     {
 
         private readonly AppDbContext _context;
-        public CartController(AppDbContext context)
+        private readonly EmailSender _emailSender;
+        public CartController(AppDbContext context,EmailSender emailSender)
         {
             _context = context;
+            _emailSender = emailSender;
         }
         private int GetAgentIdFromToken()
         {
@@ -124,6 +127,22 @@ namespace HotelBookingApi.Controllers
             }
             _context.CartItems.RemoveRange(cartItems);
             await _context.SaveChangesAsync();
+
+            // Send confirmation email to the agent
+            var agent = await _context.Agents.FindAsync(agentId);
+            if (agent == null)
+                return NotFound("Agent not found.");
+            string emailSubject = "Booking Confirmation - Thank You for Your Reservation";
+
+            string userName = agent.Name;
+            string emailMessage =
+                $"Hello {userName},\n\n" +
+                $"We’re excited to let you know that your hotel booking has been successfully confirmed.\n\n" +
+                $"We look forward to welcoming you. If you have any questions or need assistance, please reply to this email.\n\n" +
+                $"Best Regards,\n" +
+                $"HotelBookings Team";
+
+            await _emailSender.SendEmail(emailSubject, agent.Email, userName, emailMessage);
 
             return Ok(new { message = "✅ تم تأكيد عملية الشراء بنجاح!" });
         }
