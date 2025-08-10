@@ -136,7 +136,7 @@ namespace HotelBookingApi.Repository
 
         //}
 
-        
+
 
 
         public IEnumerable<BookingWithAgentAndRoomDto> GetAllBookings()
@@ -150,7 +150,7 @@ namespace HotelBookingApi.Repository
             return booking.Select(b => new BookingWithAgentAndRoomDto
             {
 
-               BookingId =b.Id,
+                BookingId = b.Id,
                 AgentName = b.Agent!.Name,
                 RoomNumber = b.Room!.RoomNumber,
                 AgentEmail = b.Agent!.Email,
@@ -159,9 +159,10 @@ namespace HotelBookingApi.Repository
                 CheckIn = b.CheckInDate,
                 CheckOut = b.CheckOutDate,
                 TotalPrice = b.TotalPrice
-               
+
             });
         }
+
 
         public BookingWithAgentAndRoomDto GetBookingById(int id)
         {

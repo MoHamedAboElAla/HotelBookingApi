@@ -57,11 +57,11 @@ namespace HotelBookingApi.Controllers
                 return $"No response from AI.\nFull Response:\n{responseJson}";
 
             answer = answer.Trim();
-
             if (answer.StartsWith("إذًا") || answer.StartsWith("لذلك") || answer.Contains("الإجابة هي"))
-                answer = answer.Replace("الإجابة هي:", "").Replace("إذًا", "").Trim();
+                answer = answer.Replace("الإجابة هي:", "").Replace("إذًا", "").Replace("لذلك", "").Trim();
 
-            return $"🔎 الإجابة:\n\n{answer}";
+            return answer;
+
         }
 
 
