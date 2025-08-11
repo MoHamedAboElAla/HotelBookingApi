@@ -133,6 +133,30 @@ namespace HotelBookingApi.Migrations
                     b.ToTable("CartItems");
                 });
 
+            modelBuilder.Entity("HotelBookingApi.Models.Favorite", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("RoomId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoomId");
+
+                    b.HasIndex("UserId", "RoomId")
+                        .IsUnique();
+
+                    b.ToTable("Favorites");
+                });
+
             modelBuilder.Entity("HotelBookingApi.Models.Hotel", b =>
                 {
                     b.Property<int>("Id")
@@ -290,6 +314,25 @@ namespace HotelBookingApi.Migrations
                     b.Navigation("Agent");
 
                     b.Navigation("Booking");
+                });
+
+            modelBuilder.Entity("HotelBookingApi.Models.Favorite", b =>
+                {
+                    b.HasOne("HotelBookingApi.Models.Room", "Room")
+                        .WithMany()
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HotelBookingApi.Models.Agent", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Room");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("HotelBookingApi.Models.Room", b =>

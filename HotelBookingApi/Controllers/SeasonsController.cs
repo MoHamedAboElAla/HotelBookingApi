@@ -5,6 +5,7 @@ using HotelBookingApi.IRepository;
 using HotelBookingApi.Models;
 using HotelBookingApi.Repository;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,34 +17,55 @@ namespace HotelBookingApi.Controllers
     {
         private readonly ISeasonRepo repo;
         private readonly IMapper map;
+        private readonly IBookingRepo bookingRepo;
 
-        public SeasonsController(ISeasonRepo Repo, IMapper map)
+        public SeasonsController(ISeasonRepo Repo, IMapper map, IBookingRepo bookingRepo)
         {
             this.repo = Repo;
             this.map = map;
+            this.bookingRepo = bookingRepo;
         }
 
 
         //getall
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAllAsync()
         {
             List<Season>seasons =  repo.GetAll();
             if (seasons == null) return NotFound();
-            return Ok(map.Map<List<DisplaySeasonDTO>>((seasons)));
+            var result = new List<DisplaySeasonDTO>();
+            foreach (var s in seasons)
+            {
+                int bookingsCount = await bookingRepo.GetBookingsCountInDateRangeAsync(s.StartDate, s.EndDate);
+
+                result.Add(new DisplaySeasonDTO
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    StartDate = s.StartDate,
+                    EndDate = s.EndDate,
+                    PriceFactor = s.PriceFactor,
+                    BookingsCount = bookingsCount
+                });
+            }
+            return Ok(result);
         }
 
 
         //getbyid
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public async Task<IActionResult> GetByIdAsync(int id)
         {
             Season s = repo.GetById(id);
 
             if (s == null) return NotFound("No Seasons Found");
             else
             {
+                int bookingsCount = await bookingRepo.GetBookingsCountInDateRangeAsync(s.StartDate, s.EndDate);
+
                 DisplaySeasonDTO sDTO = map.Map<DisplaySeasonDTO>(s);
+                sDTO.BookingsCount = bookingsCount;
+
                 return Ok(sDTO);
             }
         }

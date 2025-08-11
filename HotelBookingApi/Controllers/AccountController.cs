@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
@@ -63,7 +64,7 @@ namespace HotelBookingApi.Controllers
                 PhoneNumber = registerDto.PhoneNumber,
                 CommercialRegister = registerDto.CommercialRegister,
                 TaxVisa = registerDto.TaxVisa,
-                Role = "Agent",
+                Role = "Admin",
             };
 
             agent.Password = encryptedPassword;
@@ -72,7 +73,124 @@ namespace HotelBookingApi.Controllers
             return Ok(new { Message = "Registration successful." });
         }
 
+        [HttpGet("users")]
+        public IActionResult GetAllUsers()
+        {
+            var users = _context.Agents
+                .Select(u => new UserDto
+                {
+                    Id = u.Id,
+                    Name = u.Name,
+                    Email = u.Email,
+                    PhoneNumber = u.PhoneNumber,
+                    CommercialRegister = u.CommercialRegister,
+                    TaxVisa = u.TaxVisa,
+                    Role = u.Role
+                })
+                .ToList();
 
+            return Ok(users);
+        }
+        [HttpDelete("{id}")]
+        public IActionResult DeleteUser(int id)
+        {
+            var user = _context.Agents.Include(a => a.Bookings).FirstOrDefault(u => u.Id == id);
+            if (user == null)
+                return NotFound(new { message = "المستخدم غير موجود" });
+
+            bool hasActiveBookings = user.Bookings.Any(b => b.CheckOutDate >= DateTime.Today);
+
+            if (hasActiveBookings)
+                return BadRequest(new { message = "لا يمكن حذف المستخدم لوجود حجوزات حالية أو مستقبلية مرتبطة به" });
+
+            _context.Agents.Remove(user);
+            _context.SaveChanges();
+
+            return Ok(new { message = "تم حذف المستخدم بنجاح" });
+        }
+        [HttpPut("{id}")]
+       // [Authorize(Roles = "Admin")]
+        public IActionResult UpdateUser(int id, CreateUserDto dto)
+        {
+            var user = _context.Agents.FirstOrDefault(u => u.Id == id);
+            if (user == null)
+                return NotFound(new { message = "المستخدم غير موجود" });
+
+            if (!string.IsNullOrEmpty(dto.Name))
+                user.Name = dto.Name;
+            if (!string.IsNullOrEmpty(dto.Email))
+                user.Email = dto.Email;
+            if (!string.IsNullOrEmpty(dto.PhoneNumber))
+                user.PhoneNumber = dto.PhoneNumber;
+            if (!string.IsNullOrEmpty(dto.CommercialRegister))
+                user.CommercialRegister = dto.CommercialRegister;
+            if (!string.IsNullOrEmpty(dto.TaxVisa))
+                user.TaxVisa = dto.TaxVisa;
+            if (!string.IsNullOrEmpty(dto.Role))
+                user.Role = dto.Role;
+
+            if (!string.IsNullOrEmpty(dto.Password))
+            {
+                var passwordHasher = new PasswordHasher<Agent>(); 
+                user.Password = passwordHasher.HashPassword(user, dto.Password);
+            }
+
+            _context.SaveChanges();
+
+            return Ok(new { message = "تم تحديث بيانات المستخدم بنجاح" });
+        }
+
+
+        [HttpGet("{id}")]
+        public IActionResult GetUserById(int id)
+        {
+            var user = _context.Agents.FirstOrDefault(u => u.Id == id);
+            if (user == null)
+                return NotFound(new { message = "المستخدم غير موجود" });
+
+            var userDto = new UserDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                CommercialRegister = user.CommercialRegister,
+                TaxVisa = user.TaxVisa,
+                Role = user.Role
+            };
+
+            return Ok(userDto);
+        }
+
+        [HttpPost("create")]
+        public IActionResult CreateUser(CreateUserDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Role) || string.IsNullOrWhiteSpace(dto.Password))
+                return BadRequest(new { message = "الإيميل والدور وكلمة المرور مطلوبين" });
+
+            var existingUser = _context.Agents.FirstOrDefault(u => u.Email == dto.Email);
+            if (existingUser != null)
+                return BadRequest(new { message = "هذا الإيميل مستخدم بالفعل" });
+
+            var passwordHasher = new PasswordHasher<Agent>();
+
+            var newUser = new Agent
+            {
+                Name = dto.Name!,
+                Email = dto.Email,
+                PhoneNumber = dto.PhoneNumber!,
+                CommercialRegister = dto.CommercialRegister,
+                TaxVisa = dto.TaxVisa,
+                Role = dto.Role 
+            };
+
+            newUser.Password = passwordHasher.HashPassword(newUser, dto.Password);
+
+            _context.Agents.Add(newUser);
+            _context.SaveChanges();
+
+            return Ok(new { message = "تم إضافة المستخدم بنجاح" });
+        }
 
         private string CreateToken(Agent user)
         {

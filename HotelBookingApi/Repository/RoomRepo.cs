@@ -59,6 +59,28 @@ namespace HotelBookingApi.Repository
         }
 
 
+        public void AddRange(IEnumerable<Room> rooms)
+        {
+            db.Rooms.AddRange(rooms);
+        }
 
+        public List<int> GetRoomNumbersForHotel(int hotelId)
+        {
+            return db.Rooms
+                .Where(r => r.HotelId == hotelId)
+                .Select(r => r.RoomNumber)
+                .ToList();
+        }
+
+        public IEnumerable<Room> GetAvailableRooms(DateTime startDate, DateTime endDate)
+        {
+            var unavailableRoomIds = db.Bookings
+                .Where(b => !(endDate <= b.CheckInDate || startDate >= b.CheckOutDate))
+                .Select(b => b.RoomId)
+                .ToList();
+
+            return db.Rooms.Where(r => !unavailableRoomIds.Contains(r.Id));
+        }
     }
 }
+

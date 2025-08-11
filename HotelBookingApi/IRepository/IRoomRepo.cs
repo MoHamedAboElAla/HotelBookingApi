@@ -14,8 +14,9 @@ namespace HotelBookingApi.IRepository
         public void Save();
        public  IEnumerable<Room> GetAvailableRoomsUsingDate(DateTime startDate, DateTime endDate, int hotelId);
 
-
-
+        List<int> GetRoomNumbersForHotel(int hotelId);
+        void AddRange(IEnumerable<Room> rooms);
+        public IEnumerable<Room> GetAvailableRooms(DateTime startDate, DateTime endDate);
 
 
     }

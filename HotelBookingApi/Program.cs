@@ -7,6 +7,7 @@ using HotelBookingApi.Repository;
 using HotelBookingApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
@@ -40,7 +41,7 @@ namespace HotelBookingApi
             builder.Services.AddDbContext<AppDbContext>(options =>
                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             builder.Services.AddScoped<IHotelRepository, HotelRepository>();
-
+            builder.Services.AddScoped<EmailSender>();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
@@ -53,6 +54,7 @@ namespace HotelBookingApi
 
             builder.Services.AddScoped<IRoomRepo, RoomRepo>();
             builder.Services.AddScoped<IBookingRepo, BookingRepo>();
+            builder.Services.AddScoped<IFavoriteRepo, FavoriteRepo>();
 
             builder.Services.AddAuthentication(options =>
             {
@@ -86,23 +88,29 @@ namespace HotelBookingApi
                     });
             });
             var app = builder.Build();
-
+            var env = app.Environment;
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+            { 
+             app.UseSwagger();
+             app.UseSwaggerUI();
+             }
             app.UseCors("AllowAll");
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(
+                Path.Combine(env.WebRootPath, "images", "rooms")),
+                RequestPath = "/uploads"
+            });
             app.UseAuthentication();
             app.UseAuthorization();
            
 
 
             app.MapControllers();
-
+           
             app.Run();
         }
     }

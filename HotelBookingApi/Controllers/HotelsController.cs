@@ -274,6 +274,14 @@ namespace HotelBookingApi.Controllers
                 return NotFound();
 
             var roomDtos = _mapper.Map<List<RoomDto>>(rooms);
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}/images/rooms/";
+            foreach (var room in roomDtos)
+            {
+                if (!string.IsNullOrEmpty(room.ImageUrl))
+                    room.ImageUrl = baseUrl + room.ImageUrl;
+            }
+
             return Ok(roomDtos);
         }
 
