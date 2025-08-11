@@ -16,15 +16,11 @@ namespace HotelBookingApi.Repository
 
         public List<Room> GetAll()
         {
-
-            return db.Rooms.Include(r => r.Hotel).ToList();
-
-
+            return db.Rooms.Include(se => se.Bookings).Include(se => se.Hotel).ToList();
         }
         public Room GetbyId(int id)
         {
-
-            return db.Rooms.Include(r => r.Hotel).FirstOrDefault(r => r.Id == id);
+            return db.Rooms.Include(se => se.Bookings).Include(se => se.Hotel).FirstOrDefault(se => se.Id == id);
 
         }
 
@@ -46,15 +42,23 @@ namespace HotelBookingApi.Repository
         {
             db.SaveChanges();
         }
-        public IEnumerable<Room> GetAvailableRooms(DateTime startDate, DateTime endDate)
+        public IEnumerable<Room> GetAvailableRoomsUsingDate(DateTime startDate, DateTime endDate, int hotelId)
         {
             var unavailableRoomIds = db.Bookings
                 .Where(b => !(endDate <= b.CheckInDate || startDate >= b.CheckOutDate))
                 .Select(b => b.RoomId)
+                .Distinct()
                 .ToList();
 
-            return db.Rooms.Where(r => !unavailableRoomIds.Contains(r.Id));
+            
+            var availableRooms = db.Rooms
+                .Where(r => r.HotelId == hotelId && !unavailableRoomIds.Contains(r.Id))
+                .ToList();
+
+            return availableRooms;
         }
+
+
 
     }
 }

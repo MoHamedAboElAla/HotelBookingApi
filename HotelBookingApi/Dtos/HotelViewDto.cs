@@ -6,8 +6,10 @@
         public string? Name { get; set; }
         public string? Location { get; set; }
         public string? Country { get; set; }
+        public bool IsLocked { get; set; }
         public string? Description { get; set; }
         public byte Stars { get; set; }
+        
         // public string ImageFileName { get; set; }
         public string ImageUrl { get; set; } = "";
         public List<RoomDto>? Rooms { get; set; }

@@ -63,7 +63,8 @@ namespace HotelBookingApi.Controllers
             return Ok(items);
         }
 
-        [HttpDelete("bookingId")]
+        [HttpDelete("{bookingId}")]
+
         public async Task<IActionResult> RemoveFromCart(int bookingId)
         {
             //1-Get AgentId
@@ -88,6 +89,11 @@ namespace HotelBookingApi.Controllers
                     room.IsAvailable = true; 
                     _context.Rooms.Update(room); 
                 }
+                if (booking.CheckInDate <= DateTime.Now && DateTime.Now < booking.CheckOutDate)
+                {
+                    return BadRequest("Cannot delete a booking that is currently active.");
+                }
+
                 _context.Bookings.Remove(booking);
             }
             await _context.SaveChangesAsync();
@@ -122,5 +128,40 @@ namespace HotelBookingApi.Controllers
             return Ok(new { message = "✅ تم تأكيد عملية الشراء بنجاح!" });
         }
 
+        [HttpDelete("cancel")]
+        public async Task<IActionResult> CancelBookings()
+        {
+            int agentId = GetAgentIdFromToken();
+
+            var cartItem = await _context.CartItems.Include(c=>c.Booking)
+                .Where(a=>a.AgentId == agentId).ToListAsync();
+             
+
+            if (!cartItem.Any())
+            {
+                return NotFound("Cart is empty.");
+            }
+
+            foreach (var item in cartItem)
+            {
+                var booking = item.Booking;
+                if (booking != null || booking!.CheckInDate > DateTime.Today)
+                {
+                    var room = await _context.Rooms.FindAsync(booking.RoomId);
+                    if (room != null)
+                    {
+                        room.IsAvailable = true;
+                        _context.Rooms.Update(room);
+                       
+                    }
+                    _context.Bookings.Remove(booking);
+                   
+                }
+                _context.CartItems.Remove(item);
+            }
+                await _context.SaveChangesAsync();
+            return Ok(new { message = "Booking cancelled successfully." });
+
+        }
     }
     }

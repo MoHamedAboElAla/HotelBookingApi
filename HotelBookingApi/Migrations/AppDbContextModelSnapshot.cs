@@ -155,6 +155,9 @@ namespace HotelBookingApi.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsLocked")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasMaxLength(300)
@@ -228,9 +231,6 @@ namespace HotelBookingApi.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("HotelId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -244,8 +244,6 @@ namespace HotelBookingApi.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("HotelId");
 
                     b.ToTable("Seasons");
                 });
@@ -301,15 +299,6 @@ namespace HotelBookingApi.Migrations
                         .HasForeignKey("HotelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Hotel");
-                });
-
-            modelBuilder.Entity("HotelBookingApi.Models.Season", b =>
-                {
-                    b.HasOne("HotelBookingApi.Models.Hotel", "Hotel")
-                        .WithMany()
-                        .HasForeignKey("HotelId");
 
                     b.Navigation("Hotel");
                 });

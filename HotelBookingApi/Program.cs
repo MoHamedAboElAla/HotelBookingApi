@@ -2,6 +2,7 @@
 using HotelBookingApi.Data;
 using HotelBookingApi.IRepository;
 using HotelBookingApi.MappingConfig;
+using HotelBookingApi.Models;
 using HotelBookingApi.Repository;
 using HotelBookingApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -47,6 +48,8 @@ namespace HotelBookingApi
             builder.Services.AddScoped<ISeasonRepo, SeasonRepo>();
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<IImageUrlService, ImageUrlService>();
+            builder.Services.AddHostedService<RoomAvailabilityService>();
+
 
             builder.Services.AddScoped<IRoomRepo, RoomRepo>();
             builder.Services.AddScoped<IBookingRepo, BookingRepo>();
@@ -70,6 +73,7 @@ namespace HotelBookingApi
                  Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]))
          };
      });
+            builder.Services.AddHttpClient<AIAgentService>();
 
             builder.Services.AddCors(options =>
             {

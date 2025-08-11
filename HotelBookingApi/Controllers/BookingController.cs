@@ -6,6 +6,7 @@ using HotelBookingApi.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace HotelBookingApi.Controllers
@@ -55,6 +56,8 @@ namespace HotelBookingApi.Controllers
             }
             return Ok(booking);
         }
+        [HttpGet("count")]
+        public async Task<IActionResult> GetBookingsCount() => Ok(await _context.Bookings.CountAsync());
 
         [HttpGet]
         public IActionResult GetAllBookings()
@@ -73,10 +76,11 @@ namespace HotelBookingApi.Controllers
             {
                 return NotFound();
             }
-            if (booking.CheckInDate <= DateTime.Now)
+            if (booking.CheckInDate <= DateTime.Now && DateTime.Now < booking.CheckOutDate)
             {
-                return BadRequest("Cannot delete a booking that has already started.");
+                return BadRequest("Cannot delete a booking that is currently active.");
             }
+
             var room =  _roomRepo.GetbyId(booking.RoomId ??0 );
             var otherBookings = await _bookingRepo.GetBookingsByRoomIdAsync(room.Id);
 
@@ -93,9 +97,10 @@ namespace HotelBookingApi.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
-       
+     
 
-    
+
+
 
     }
 }

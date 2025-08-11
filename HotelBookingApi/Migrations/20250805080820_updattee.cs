@@ -5,7 +5,7 @@
 namespace HotelBookingApi.Migrations
 {
     /// <inheritdoc />
-    public partial class update : Migration
+    public partial class updattee : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
