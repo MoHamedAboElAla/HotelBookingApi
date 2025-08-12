@@ -1,4 +1,4 @@
-
+﻿
 using HotelBookingApi.Data;
 using HotelBookingApi.IRepository;
 using HotelBookingApi.MappingConfig;
@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Stripe;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
 
@@ -79,14 +80,19 @@ namespace HotelBookingApi
 
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowAll",
+                options.AddPolicy("AllowAngularClient",
                     policy =>
                     {
-                        policy.AllowAnyOrigin()
-                              .AllowAnyHeader()
-                              .AllowAnyMethod();
+                        //policy.AllowAnyOrigin()
+                        //      .AllowAnyHeader()
+                        //      .AllowAnyMethod();
+                        policy.WithOrigins("http://localhost:4200") // واجهة Angular
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
                     });
             });
+            Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
             var app = builder.Build();
             var env = app.Environment;
             // Configure the HTTP request pipeline.
@@ -95,8 +101,15 @@ namespace HotelBookingApi
              app.UseSwagger();
              app.UseSwaggerUI();
              }
-            app.UseCors("AllowAll");
+            //builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+            //StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+            //builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+           // StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+            //Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+            //app.UseCors("AllowAll");
+            // app.UseCors("AllowAngularClient");
             app.UseHttpsRedirection();
+            app.UseCors("AllowAngularClient");
             app.UseStaticFiles();
             app.UseStaticFiles(new StaticFileOptions
             {
