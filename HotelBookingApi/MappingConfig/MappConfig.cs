@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 
 using HotelBookingApi.Dtos;
-
+using HotelBookingApi.Dtos.HotelReviewsDTOs;
 using HotelBookingApi.Dtos.RoomDTOS;
 using HotelBookingApi.DTOs.SeasonDTOs;
 using HotelBookingApi.Models;
@@ -16,6 +16,15 @@ namespace HotelBookingApi.MappingConfig
 
             CreateMap<AddSeasonDTO, Season>();
             CreateMap<EditSeasonDTO, Season>();
+
+            CreateMap<HotelReview, DisplayReviewDTO>().AfterMap(
+            (src, dest) =>
+            {
+                dest.Agent = src.Agent.Name;
+                dest.HotelName = src.Hotel.Name;
+            });
+            CreateMap<AddReviewDTO, HotelReview>();
+            CreateMap<EditReviewDTO, HotelReview>();
 
             // Room <-> RoomDto
             CreateMap<Room, RoomDto>();

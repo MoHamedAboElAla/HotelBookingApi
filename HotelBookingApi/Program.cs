@@ -47,6 +47,7 @@ namespace HotelBookingApi
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(op => op.AddProfile<MappConfig>());
             builder.Services.AddScoped<ISeasonRepo, SeasonRepo>();
+            builder.Services.AddScoped<IHotelReviewsRepo, HotelReviewsRepo>();
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<IImageUrlService, ImageUrlService>();
             builder.Services.AddHostedService<RoomAvailabilityService>();
