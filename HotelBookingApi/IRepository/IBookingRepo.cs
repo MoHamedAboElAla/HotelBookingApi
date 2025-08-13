@@ -18,5 +18,8 @@ namespace HotelBookingApi.IRepository
 
         Task<int> GetBookingsCountInDateRangeAsync(DateTime startDate, DateTime endDate);
 
+        public bool HasCompletedBooking(int agentId, int hotelId);
+
+
     }
 }

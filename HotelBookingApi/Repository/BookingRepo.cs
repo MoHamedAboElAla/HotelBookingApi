@@ -208,5 +208,11 @@ namespace HotelBookingApi.Repository
                 .CountAsync(b => b.CheckOutDate > startDate && b.CheckInDate < endDate);
         }
 
+        public bool HasCompletedBooking(int agentId, int hotelId)
+        {
+            return _context.Bookings.Any(b => b.AgentId == agentId && b.HotelId == hotelId);
+        }
+
+
     }
 }

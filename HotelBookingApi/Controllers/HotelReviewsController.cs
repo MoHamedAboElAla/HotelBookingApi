@@ -1,10 +1,15 @@
 ﻿using AutoMapper;
+using HotelBookingApi.Data;
 using HotelBookingApi.Dtos.HotelReviewsDTOs;
 using HotelBookingApi.DTOs.SeasonDTOs;
 using HotelBookingApi.IRepository;
 using HotelBookingApi.Models;
+using HotelBookingApi.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Stripe;
+using System.Security.Claims;
 
 namespace HotelBookingApi.Controllers
 {
@@ -14,11 +19,15 @@ namespace HotelBookingApi.Controllers
     {
         private readonly IHotelReviewsRepo repo;
         private readonly IMapper map;
+        private readonly IBookingRepo bookrepo;
+        private readonly AppDbContext db;
 
-        public HotelReviewsController(IHotelReviewsRepo Repo, IMapper Map)
+        public HotelReviewsController(IHotelReviewsRepo Repo, IMapper Map, IBookingRepo bookrepo, AppDbContext db)
         {
             repo = Repo;
             map = Map;
+            this.bookrepo = bookrepo;
+            this.db = db;
         }
 
 
@@ -36,7 +45,7 @@ namespace HotelBookingApi.Controllers
         {
             HotelReview r = repo.GetById(id);
 
-            if (r == null) return NotFound("No Seasons Found");
+            if (r == null) return NotFound("No Reviews Found");
             else
             {
                 DisplayReviewDTO sDTO = map.Map<DisplayReviewDTO>(r);
@@ -47,18 +56,34 @@ namespace HotelBookingApi.Controllers
 
         //add
         [HttpPost]
+        [Authorize]
         public IActionResult add(AddReviewDTO rDTO)
         {
-            if (rDTO == null) return BadRequest();
+            if (rDTO == null) return BadRequest("Review data is required.");
+            
+            var agentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            bool userExists = db.Bookings.Any(b => b.AgentId == agentId);
+            if (!userExists)
+                return Unauthorized("User not found.");
+
+            // 
+            bool hasCompletedBooking = bookrepo.HasCompletedBooking(agentId, rDTO.HotelId);
+            if (!hasCompletedBooking)
+                return BadRequest("You must have stayed at this hotel before leaving a review.");
+
             if (ModelState.IsValid)
             {
                 HotelReview r = map.Map<HotelReview>(rDTO);
+                r.AgentId = agentId;
                 repo.Add(r);
                 repo.save();
                 return CreatedAtAction("GetById", new { id = r.Id }, r);
             }
             else return BadRequest(ModelState);
         }
+
+
 
        //edit
         [HttpPut("{id}")]
