@@ -211,6 +211,8 @@ namespace HotelBookingApi.Repository
         public bool HasCompletedBooking(int agentId, int hotelId)
         {
             return _context.Bookings.Any(b => b.AgentId == agentId && b.HotelId == hotelId);
+            //return _context.Bookings.Any(b => b.AgentId == agentId && b.HotelId == hotelId && b.CheckInDate <= DateTime.Now);
+
         }
 
 
