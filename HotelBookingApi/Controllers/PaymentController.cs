@@ -1,4 +1,4 @@
-﻿using HotelBookingApi.Dtos;
+using HotelBookingApi.Dtos;
 using HotelBookingApi.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +7,6 @@ using Stripe.Checkout;
 
 namespace HotelBookingApi.Controllers
 {
-    
     [Route("api/[controller]")]
     [ApiController]
     public class PaymentController : ControllerBase
@@ -56,6 +55,4 @@ namespace HotelBookingApi.Controllers
             return Ok(new { id = session.Id });
         }
     }
-
-    
 }

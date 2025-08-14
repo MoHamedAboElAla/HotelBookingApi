@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBookingApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250807201855_AddFavoriteTb")]
-    partial class AddFavoriteTb
+    [Migration("20250811123924_update")]
+    partial class update
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
