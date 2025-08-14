@@ -1,4 +1,4 @@
-
+﻿
 using HotelBookingApi.Data;
 using HotelBookingApi.IRepository;
 using HotelBookingApi.MappingConfig;
@@ -79,14 +79,19 @@ namespace HotelBookingApi
 
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowAll",
+                options.AddPolicy("AllowAngularClient",
                     policy =>
                     {
-                        policy.AllowAnyOrigin()
-                              .AllowAnyHeader()
-                              .AllowAnyMethod();
+                        //policy.AllowAnyOrigin()
+                        //      .AllowAnyHeader()
+                        //      .AllowAnyMethod();
+                        policy.WithOrigins("http://localhost:4200") // واجهة Angular
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
                     });
             });
+            Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
             var app = builder.Build();
             var env = app.Environment;
             // Configure the HTTP request pipeline.
@@ -95,8 +100,9 @@ namespace HotelBookingApi
              app.UseSwagger();
              app.UseSwaggerUI();
              }
-            app.UseCors("AllowAll");
+            //app.UseCors("AllowAll");
             app.UseHttpsRedirection();
+            app.UseCors("AllowAngularClient");
             app.UseStaticFiles();
             app.UseStaticFiles(new StaticFileOptions
             {

@@ -1,5 +1,6 @@
 ﻿using HotelBookingApi.Data;
 using HotelBookingApi.Dtos;
+using HotelBookingApi.Models;
 using HotelBookingApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +30,49 @@ namespace HotelBookingApi.Controllers
 
             return int.Parse(agentIdClaim.Value);
         }
+
+
+        [HttpPost]
+        public async Task<IActionResult> AddToCart([FromBody] int bookingId)
+        {
+            var agentId = GetAgentIdFromToken();
+
+            var booking = await _context.Bookings
+                .Include(b => b.Room)
+                .FirstOrDefaultAsync(b => b.Id == bookingId);
+
+            if (booking == null)
+                return NotFound("Booking not found.");
+
+            // منع إضافة نفس الـ booking مرتين
+            bool alreadyExists = await _context.CartItems
+                .AnyAsync(c => c.AgentId == agentId && c.BookingId == bookingId);
+
+            if (alreadyExists)
+                return BadRequest("This booking is already in your cart.");
+
+            _context.CartItems.Add(new CartItem
+            {
+                AgentId = agentId,
+                BookingId = bookingId
+            });
+
+            await _context.SaveChangesAsync();
+            return Ok("Item added to cart.");
+        }
+
+        //[HttpPost]
+        //public async Task<IActionResult> AddToCart(int bookingId)
+        //{
+        //    var agentId = GetAgentIdFromToken();
+        //    var booking = await _context.Bookings.FindAsync(bookingId);
+        //    if (booking == null) return NotFound("Booking not found.");
+
+        //    _context.CartItems.Add(new CartItem { AgentId = agentId, BookingId = bookingId });
+        //    await _context.SaveChangesAsync();
+        //    return Ok("Item added to cart.");
+        //}
+
 
         [HttpGet("count")]
         public async Task<ActionResult<int>> GetCartCount()

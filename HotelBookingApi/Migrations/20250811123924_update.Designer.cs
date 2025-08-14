@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBookingApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250811122801_update")]
+    [Migration("20250811123924_update")]
     partial class update
     {
         /// <inheritdoc />

@@ -64,7 +64,7 @@ namespace HotelBookingApi.Controllers
                 PhoneNumber = registerDto.PhoneNumber,
                 CommercialRegister = registerDto.CommercialRegister,
                 TaxVisa = registerDto.TaxVisa,
-                Role = "Admin",
+                Role = "Agent",
             };
 
             agent.Password = encryptedPassword;
@@ -212,7 +212,7 @@ namespace HotelBookingApi.Controllers
                 issuer: _configuration["JwtSettings:Issuer"],
                 audience: _configuration["JwtSettings:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(30),
+                expires: DateTime.Now.AddHours(12),
                 signingCredentials: creds
             );
 
