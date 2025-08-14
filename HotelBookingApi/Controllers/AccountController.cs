@@ -64,7 +64,7 @@ namespace HotelBookingApi.Controllers
                 PhoneNumber = registerDto.PhoneNumber,
                 CommercialRegister = registerDto.CommercialRegister,
                 TaxVisa = registerDto.TaxVisa,
-                Role = "Admin",
+                Role = "Agent",
             };
 
             agent.Password = encryptedPassword;
@@ -251,6 +251,7 @@ namespace HotelBookingApi.Controllers
                 Message = "Login successful"
             };
             return Ok(response);
+
         }
 
 

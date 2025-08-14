@@ -35,6 +35,8 @@ namespace HotelBookingApi.Models
         public string Password { get; set; }
         //public ICollection<Hotel> Hotels { get; set; } = new List<Hotel>();
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+
+        public ICollection<HotelReview> HotelReviews { get; set; } = new List<HotelReview>();
         
     }
 }
