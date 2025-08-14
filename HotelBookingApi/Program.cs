@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Stripe;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
 
@@ -47,6 +48,7 @@ namespace HotelBookingApi
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(op => op.AddProfile<MappConfig>());
             builder.Services.AddScoped<ISeasonRepo, SeasonRepo>();
+            builder.Services.AddScoped<IHotelReviewsRepo, HotelReviewsRepo>();
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<IImageUrlService, ImageUrlService>();
             builder.Services.AddHostedService<RoomAvailabilityService>();
@@ -100,7 +102,13 @@ namespace HotelBookingApi
              app.UseSwagger();
              app.UseSwaggerUI();
              }
+            //builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+            //StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+            //builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+           // StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+            //Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
             //app.UseCors("AllowAll");
+            // app.UseCors("AllowAngularClient");
             app.UseHttpsRedirection();
             app.UseCors("AllowAngularClient");
             app.UseStaticFiles();

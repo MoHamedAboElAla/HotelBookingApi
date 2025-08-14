@@ -200,6 +200,51 @@ namespace HotelBookingApi.Migrations
                     b.ToTable("Hotels");
                 });
 
+            modelBuilder.Entity("HotelBookingApi.Models.HotelReview", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccuracyRating")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AgentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CleanlinessRating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FacilitiesRating")
+                        .HasColumnType("int");
+
+                    b.Property<int>("HotelId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LocationRating")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StaffRating")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentId");
+
+                    b.HasIndex("HotelId");
+
+                    b.ToTable("HotelReviews");
+                });
+
             modelBuilder.Entity("HotelBookingApi.Models.Room", b =>
                 {
                     b.Property<int>("Id")
@@ -335,6 +380,25 @@ namespace HotelBookingApi.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("HotelBookingApi.Models.HotelReview", b =>
+                {
+                    b.HasOne("HotelBookingApi.Models.Agent", "Agent")
+                        .WithMany("HotelReviews")
+                        .HasForeignKey("AgentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HotelBookingApi.Models.Hotel", "Hotel")
+                        .WithMany("HotelReviews")
+                        .HasForeignKey("HotelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Agent");
+
+                    b.Navigation("Hotel");
+                });
+
             modelBuilder.Entity("HotelBookingApi.Models.Room", b =>
                 {
                     b.HasOne("HotelBookingApi.Models.Hotel", "Hotel")
@@ -349,11 +413,15 @@ namespace HotelBookingApi.Migrations
             modelBuilder.Entity("HotelBookingApi.Models.Agent", b =>
                 {
                     b.Navigation("Bookings");
+
+                    b.Navigation("HotelReviews");
                 });
 
             modelBuilder.Entity("HotelBookingApi.Models.Hotel", b =>
                 {
                     b.Navigation("Bookings");
+
+                    b.Navigation("HotelReviews");
 
                     b.Navigation("Rooms");
                 });

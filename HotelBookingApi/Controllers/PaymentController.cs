@@ -1,4 +1,5 @@
-﻿using HotelBookingApi.Models;
+using HotelBookingApi.Dtos;
+using HotelBookingApi.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
@@ -29,21 +30,21 @@ namespace HotelBookingApi.Controllers
             {
                 PaymentMethodTypes = new List<string> { "card" },
                 LineItems = new List<SessionLineItemOptions>
-         {
-             new SessionLineItemOptions
-             {
-                 PriceData = new SessionLineItemPriceDataOptions
-                 {
-                     Currency = "egp", // أو usd حسب اللي عايز تجربه
-                     UnitAmount = request.Amount, // قيمة بـ cents
-                     ProductData = new SessionLineItemPriceDataProductDataOptions
-                     {
-                         Name = request.Description ?? request.RoomType ?? "Room Booking"
-                     }
-                 },
-                 Quantity = 1
-             }
-         },
+            {
+                new SessionLineItemOptions
+                {
+                    PriceData = new SessionLineItemPriceDataOptions
+                    {
+                        Currency = "egp", // أو usd حسب اللي عايز تجربه
+                        UnitAmount = request.Amount, // قيمة بـ cents
+                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        {
+                            Name = request.Description ?? request.RoomType ?? "Room Booking"
+                        }
+                    },
+                    Quantity = 1
+                }
+            },
                 Mode = "payment",
                 SuccessUrl = "http://localhost:4200/success",
                 CancelUrl = "http://localhost:4200/payment"

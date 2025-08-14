@@ -1,5 +1,6 @@
 ﻿using HotelBookingApi.Models;
 using Microsoft.EntityFrameworkCore;
+using Stripe;
 
 namespace HotelBookingApi.Data
 {
@@ -16,6 +17,7 @@ namespace HotelBookingApi.Data
         public DbSet<Season> Seasons { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Favorite> Favorites { get; set; }
+        public DbSet<HotelReview> HotelReviews { get; set; }
 
 
 
