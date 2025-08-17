@@ -1,4 +1,6 @@
 ﻿using HotelBookingApi.Data;
+using HotelBookingApi.Dtos;
+using HotelBookingApi.Dtos.RoomDTOS;
 using HotelBookingApi.IRepository;
 using HotelBookingApi.Models;
 using Microsoft.EntityFrameworkCore;
@@ -43,11 +45,23 @@ namespace HotelBookingApi.Repository
         }
 
 
-        public async Task<IEnumerable<Room>> GetFavoritesAsync(int userId)
+        public async Task<IEnumerable<displayRoom>> GetFavoritesAsync(int userId)
         {
             return await _context.Favorites
                 .Where(f => f.UserId == userId)
-                .Select(f => f.Room!)
+                .Select(f => new displayRoom
+                {
+                    Id = f.Room!.Id,
+                    RoomNumber = f.Room.RoomNumber,
+                    RoomType = f.Room.RoomType,
+                    PricePerNight = f.Room.PricePerNight,
+                    IsAvailable = f.Room.IsAvailable,
+                    Description = f.Room.Description,
+                    HotelId = f.Room.HotelId,
+                    ImageUrl = string.IsNullOrEmpty(f.Room.ImageUrl)
+                        ? null
+                        : $"https://localhost:7235/images/rooms/{f.Room.ImageUrl}"
+                })
                 .ToListAsync();
         }
         public async Task<bool> IsFavoriteAsync(int userId, int roomId)
