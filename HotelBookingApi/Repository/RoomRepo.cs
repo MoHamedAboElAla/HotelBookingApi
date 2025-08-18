@@ -1,4 +1,6 @@
 ﻿using HotelBookingApi.Data;
+using HotelBookingApi.Dtos;
+using HotelBookingApi.Dtos.RoomDTOS;
 using HotelBookingApi.IRepository;
 using HotelBookingApi.Models;
 using Microsoft.EntityFrameworkCore;
@@ -42,7 +44,7 @@ namespace HotelBookingApi.Repository
         {
             db.SaveChanges();
         }
-        public IEnumerable<Room> GetAvailableRoomsUsingDate(DateTime startDate, DateTime endDate, int hotelId)
+        public IEnumerable<displayRoom> GetAvailableRoomsUsingDate(DateTime startDate, DateTime endDate, int hotelId)
         {
             var unavailableRoomIds = db.Bookings
                 .Where(b => !(endDate <= b.CheckInDate || startDate >= b.CheckOutDate))
@@ -50,11 +52,22 @@ namespace HotelBookingApi.Repository
                 .Distinct()
                 .ToList();
 
-            
             var availableRooms = db.Rooms
                 .Where(r => r.HotelId == hotelId && !unavailableRoomIds.Contains(r.Id))
+                .Select(r => new displayRoom
+                {
+                    Id = r.Id,
+                    RoomNumber = r.RoomNumber,
+                    RoomType = r.RoomType,
+                    PricePerNight = r.PricePerNight,
+                    IsAvailable = r.IsAvailable,
+                    Description = r.Description,
+                    HotelId = r.HotelId,
+                    ImageUrl = r.ImageUrl.StartsWith("http")
+                        ? r.ImageUrl
+                        : $"https://localhost:7235/images/rooms/{r.ImageUrl}"
+                })
                 .ToList();
-
             return availableRooms;
         }
 

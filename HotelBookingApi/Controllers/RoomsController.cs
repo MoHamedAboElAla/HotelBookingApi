@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using HotelBookingApi.Data;
+using HotelBookingApi.Dtos;
 using HotelBookingApi.Dtos.RoomDTOS;
 using HotelBookingApi.DTOs.SeasonDTOs;
 using HotelBookingApi.IRepository;
@@ -258,7 +259,7 @@ namespace HotelBookingApi.Controllers
             return Ok(roomDTO);
         }
         [HttpGet("available")]
-        public ActionResult<IEnumerable<Room>> GetAvailableRooms([FromQuery] DateTime startDate, [FromQuery] DateTime endDate, [FromQuery] int hotelId)
+        public ActionResult<IEnumerable<displayRoom>> GetAvailableRooms([FromQuery] DateTime startDate, [FromQuery] DateTime endDate, [FromQuery] int hotelId)
         {
             if (startDate >= endDate)
                 return BadRequest("Start date must be before end date.");

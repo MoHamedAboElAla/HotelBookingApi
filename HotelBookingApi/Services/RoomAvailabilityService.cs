@@ -40,7 +40,7 @@ namespace HotelBookingApi.Services
                 await context.SaveChangesAsync();
 
               
-                await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
+                await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
             }
         }
     }
